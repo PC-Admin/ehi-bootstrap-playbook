@@ -1,0 +1,15 @@
+---
+
+- name: Detach and delete all the digitalocean volumes
+  community.digitalocean.digital_ocean_block_storage:
+    volume_name: "{{ ( inventory_hostname | split('.') )[0] }}volume{{ item }}"
+    state: absent
+    command: attach
+    api_token: '{{ do_api_token }}'
+    region: "{{ do_droplet_region }}"
+    block_size: "{{ volume_size | int }}"
+    description: "Volume {{ item }} for {{ inventory_hostname }}"
+    droplet_id: "{{ droplet_id }}"
+  loop: "{{ range(1, number_of_volumes + 1)|list }}"
+  when: ( rke2_worker | bool )
+  tags: [ 'never', 'teardown' ]

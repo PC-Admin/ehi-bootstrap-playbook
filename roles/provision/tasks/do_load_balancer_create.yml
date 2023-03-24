@@ -1,0 +1,31 @@
+---
+
+- debug:
+    msg: "ansible_play_hosts: {{ ansible_play_hosts }}"
+
+- name: Create DigitalOcean Load Balancer #, add all Droplets with the 'awx' tag
+  delegate_to: 127.0.0.1
+  community.digitalocean.digital_ocean_load_balancer:
+    name: "leader.{{ awx_base_domain }}"
+    state: present
+    region: "{{ do_droplet_region }}"
+    forwarding_rules:
+      - entry_protocol: http
+        entry_port: 6443
+        target_protocol: http
+        target_port: 6443
+    tag: awx
+    #droplet_ids: "{{ droplet_ids }}"
+    oauth_token: '{{ do_api_token }}'
+  run_once: True
+  tags: [ 'never', 'provision' ]
+
+- name: Gather facts about all load balancers
+  delegate_to: 127.0.0.1
+  community.digitalocean.digital_ocean_load_balancer_info:
+    oauth_token: "{{ do_api_token }}"
+  register: load_balancer_facts
+  run_once: True
+
+- debug:
+    msg: "load_balancer_facts: {{ load_balancer_facts }}"

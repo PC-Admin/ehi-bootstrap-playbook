@@ -1,0 +1,25 @@
+---
+
+- name: Create A records that points to the servers IP
+  delegate_to: 127.0.0.1
+  community.general.cloudflare_dns:
+    zone: '{{ awx_base_domain }}'
+    record: '{{ item }}'
+    type: A
+    value: '{{ server_ipv4 }}'
+    account_email: '{{ cloudflare_email }}'
+    account_api_token: '{{ cloudflare_api_token }}'
+    state: present
+  with_items: "{{ awx_subdomain }}"
+  when: ( server_ipv4 | length > 0 )
+  register: record_ipv4
+
+- name: Print the new IPv4 DNS record
+  delegate_to: 127.0.0.1
+  ansible.builtin.debug:
+    msg: Record IPv4 - {{ record_ipv4 }}
+  when: ( server_ipv4 | length > 0 )
+
+- name: Pause for 3 minutes to let CloudFlares DNS propagate
+  ansible.builtin.pause:
+    minutes: 3

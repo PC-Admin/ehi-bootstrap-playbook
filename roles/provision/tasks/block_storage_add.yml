@@ -1,0 +1,81 @@
+---
+
+# spawn 2-N 25GB volumes and attach them to the digitalocean droplets
+# mount them at /mnt/longhorn-bricks/brick.01, /mnt/longhorn-bricks/brick.02 etc
+
+- name: Create and volumes for each worker droplet
+  delegate_to: 127.0.0.1
+  community.digitalocean.digital_ocean_block_storage:
+    volume_name: "{{ ( inventory_hostname | split('.') )[0] }}volume{{ item }}"
+    state: present
+    command: create
+    api_token: '{{ do_api_token }}'
+    region: "{{ do_droplet_region }}"
+    block_size: "{{ volume_size | int }}"
+    description: "Volume {{ item }} for {{ inventory_hostname }}"
+    droplet_id: "{{ new_server_info.data.droplet.id }}"
+  #register: volumes
+  loop: "{{ range(1, number_of_volumes + 1)|list }}"
+  when: ( rke2_type == "agent" )
+
+# rke2_type: server or agent
+
+- name: Attach volume to each droplet
+  delegate_to: 127.0.0.1
+  community.digitalocean.digital_ocean_block_storage:
+    volume_name: "{{ ( inventory_hostname | split('.') )[0] }}volume{{ item }}"
+    state: present
+    command: attach
+    api_token: '{{ do_api_token }}'
+    region: "{{ do_droplet_region }}"
+    droplet_id: "{{ new_server_info.data.droplet.id }}"
+  #register: volumes
+  loop: "{{ range(1, number_of_volumes + 1)|list }}"
+  when: ( rke2_type == "agent" )
+
+- name: Install necessary packages
+  ansible.builtin.package:
+    name:
+      - "xfsprogs"
+    state: present
+  when: ( rke2_type == "agent" )
+
+- name: Get volume device paths
+  set_fact:
+    device_paths: "{{ device_paths | default([]) + ['/dev/disk/by-id/scsi-0DO_Volume_' + (inventory_hostname | split('.'))[0] + 'volume' + item|string] }}"
+  loop: "{{ range(1, number_of_volumes + 1)|list }}"
+  when: ( rke2_type == "agent" )
+
+- name: Format the volumes with XFS
+  ansible.builtin.filesystem:
+    fstype: xfs
+    dev: "{{ item }}"
+  loop: "{{ device_paths }}"
+  when: ( rke2_type == "agent" )
+
+- name: Create mount directories
+  ansible.builtin.file:
+    path: "/mnt/longhorn-bricks/brick{{ item }}"
+    state: directory
+  loop: "{{ range(1, number_of_volumes + 1)|list }}"
+  when: ( rke2_type == "agent" )
+
+- name: Debug variables
+  ansible.builtin.debug:
+    var: device_paths
+  when: ( rke2_type == "agent" )
+
+- name: Debug loop variable
+  ansible.builtin.debug:
+    var: item
+  loop: "{{ range(1, number_of_volumes + 1)|list }}"
+  when: ( rke2_type == "agent" )
+
+- name: Mount the volumes
+  ansible.builtin.mount:
+    path: "/mnt/longhorn-bricks/brick{{ item }}"
+    src: "{{ device_paths[item - 1] }}"
+    fstype: xfs
+    state: mounted
+  loop: "{{ range(1, number_of_volumes + 1)|list }}"
+  when: ( rke2_type == "agent" )

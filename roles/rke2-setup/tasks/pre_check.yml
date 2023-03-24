@@ -1,0 +1,50 @@
+---
+
+# Additional checks for RKE2
+
+- name: Create a dynamic group for controlplane nodes
+  group_by:
+    key: "controlplane_{{ 'yes' if rke2_controlplane | bool else 'no' }}"
+
+- name: Create list of controlplane nodes
+  set_fact:
+    controlplane_nodes: "{{ groups['controlplane_yes'] }}"
+  run_once: True
+
+- name: DEBUG Print list of controlplane nodes
+  debug:
+    msg: "{{ groups['controlplane_yes'] }}"
+  run_once: True
+
+- name: Assert that the number of hosts is odd and >= 3
+  assert:
+    that:
+      - "controlplane_nodes | length % 2 == 1"
+      - "controlplane_nodes | length >= 3"
+    fail_msg: "For RKE2 the number of control-plane nodes must be an odd number and >= 3, exiting playbook..."
+    success_msg: "The number of control-plane nodes is an odd number and >= 3, proceeding with RKE2 installation..."
+  run_once: true
+
+- name: Get a list of all ansible hosts minus the bootstrap node
+  set_fact:
+    additional_rke2_nodes: "{{ ansible_play_hosts | difference([rke2_bootstrap_node]) }}"
+  run_once: True
+
+- name: DEBUG Print additional_rke2_nodes
+  debug:
+    msg: "{{ additional_rke2_nodes }}"
+  run_once: True
+
+- name: Get a list of all the worker only nodes
+  group_by:
+    key: "worker_only_hosts_{{ 'yes' if (rke2_worker | bool) and (not rke2_controlplane | bool) else 'no' }}"
+
+- name: Create list of all the worker only nodes
+  set_fact:
+    worker_only_hosts: "{{ groups['worker_only_hosts_yes'] }}"
+  run_once: True
+
+- name: DEBUG print list of worker only nodes
+  debug:
+    msg: "{{ worker_only_hosts }}"
+  run_once: True

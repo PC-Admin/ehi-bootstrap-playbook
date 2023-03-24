@@ -1,0 +1,43 @@
+---
+
+# Print the RKE2 version
+
+- name: Print the RKE2 version
+  debug:
+    msg: "RKE2 version: {{ rke2_version }}"
+
+# Print the RKE2 server version
+
+- name: Print the RKE2 server version
+  debug:
+    msg: "RKE2 server version: {{ rke2_server_version }}"
+
+# Print the RKE2 agent version
+
+- name: Print the RKE2 agent version
+  debug:
+    msg: "RKE2 agent version: {{ rke2_agent_version }}"
+
+# Print the RKE2 server image
+
+- name: Print the RKE2 server image
+  debug:
+    msg: "RKE2 server image: {{ rke2_server_image }}"
+
+# Print the RKE2 agent image
+
+- name: Print the RKE2 agent image
+  debug:
+    msg: "RKE2 agent image: {{ rke2_agent_image }}"
+
+# Print rke2_api_ip variable
+
+- name: Print rke2_api_ip variable
+  debug:
+    msg: "rke2_api_ip: {{ rke2_api_ip }}"
+
+# Print rke2_token variable
+
+- name: Print rke2_api_ip variable
+  debug:
+    msg: "rke2_token: {{ rke2_token }}"

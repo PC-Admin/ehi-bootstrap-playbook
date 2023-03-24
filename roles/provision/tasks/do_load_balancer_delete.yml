@@ -1,0 +1,13 @@
+---
+
+- name: Delete DigitalOcean Load Balancer
+  delegate_to: 127.0.0.1
+  community.digitalocean.digital_ocean_load_balancer:
+    name: "leader.{{ awx_base_domain }}"
+    state: absent
+    region: "{{ do_droplet_region }}"
+    tag: awx
+    oauth_token: '{{ do_api_token }}'
+  run_once: True
+  ignore_errors: yes
+  tags: [ 'never', 'teardown' ]

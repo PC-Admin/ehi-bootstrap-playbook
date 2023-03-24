@@ -1,0 +1,15 @@
+---
+
+- name: "Setup for a HA AWX system on a RKE2 K8s cluster."
+  hosts: "{{ 'k8s_cluster' }}" #[masters] [workers] k8s_cluster
+  gather_facts: no
+
+  roles:
+    - provision
+    - role: lablabs.rke2
+    - rke2-test
+    #- rke2-setup
+    #- awx-install
+    #- awx-custom-config
+    #- awx-backup
+    #- awx-monitor

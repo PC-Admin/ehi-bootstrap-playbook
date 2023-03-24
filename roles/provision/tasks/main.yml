@@ -1,0 +1,40 @@
+
+# Creates DigitalOcean Droplets
+- import_tasks: "{{ role_path }}/tasks/do_droplet_create.yml"
+  tags: [ 'never', 'provision' ]
+
+# Deletes DigitalOcean Droplets
+- import_tasks: "{{ role_path }}/tasks/do_droplet_delete.yml"
+  tags: [ 'never', 'teardown' ]
+
+# Save the Servers IP address
+- import_tasks: "{{ role_path }}/tasks/save_server_ips.yml"
+  tags: [ 'never', 'provision' ]
+
+# Generates initial variables and sets up SSH access
+- import_tasks: "{{ role_path }}/tasks/generate_initial_variables.yml"
+  tags: [ 'never', 'provision' ]
+
+# Creates a DigitalOcean Load Balancer
+- import_tasks: "{{ role_path }}/tasks/do_load_balancer_create.yml"
+  tags: [ 'never', 'provision' ]
+
+# Deletes the DigitalOcean Load Balancer
+- import_tasks: "{{ role_path }}/tasks/do_load_balancer_delete.yml"
+  tags: [ 'never', 'teardown' ]
+
+# Creates a Cloudflare DNS entry
+- import_tasks: "{{ role_path }}/tasks/cloudflare_dns_create.yml"
+  tags: [ 'never', 'provision' ]
+
+# Deletes a Cloudflare DNS entry
+- import_tasks: "{{ role_path }}/tasks/cloudflare_dns_delete.yml"
+  tags: [ 'never', 'teardown' ]
+
+# Adds block storage devices to each DigitalOcean Droplet
+- import_tasks: "{{ role_path }}/tasks/block_storage_add.yml"
+  tags: [ 'never', 'provision' ]
+
+# Deletes all block storage devices from each DigitalOcean Droplet
+- import_tasks: "{{ role_path }}/tasks/block_storage_add.yml"
+  tags: [ 'never', 'teardown' ]
