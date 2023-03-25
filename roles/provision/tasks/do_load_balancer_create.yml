@@ -4,7 +4,7 @@
     msg: "ansible_play_hosts: {{ ansible_play_hosts }}"
   run_once: True
 
-- name: Create DigitalOcean Load Balancer #, add all Droplets with the 'awx' tag
+- name: Create DigitalOcean Load Balancer #, add all Droplets with the 'rke2-master' tag
   delegate_to: 127.0.0.1
   community.digitalocean.digital_ocean_load_balancer:
     name: "leader.{{ awx_base_domain }}"
@@ -15,6 +15,7 @@
         entry_port: 9345
         target_protocol: https
         target_port: 9345
+        tls_passthrough: true
     tag: rke2-master
     #droplet_ids: "{{ droplet_ids }}"
     oauth_token: '{{ do_api_token }}'
