@@ -6,7 +6,9 @@
 
   roles:
     - provision
+    - rke2-pre-check
     - role: lablabs.rke2
+      tags: rke2-setup
     - rke2-test
     #- rke2-setup
     #- awx-install

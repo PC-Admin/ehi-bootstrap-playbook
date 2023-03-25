@@ -3,6 +3,13 @@
 # spawn 2-N 25GB volumes and attach them to the digitalocean droplets
 # mount them at /mnt/longhorn-bricks/brick.01, /mnt/longhorn-bricks/brick.02 etc
 
+# print new_server_info variable
+
+- name: Print new_server_info variable
+  debug:
+    msg: "new_server_info: {{ new_server_info }}"
+  tags: [ 'never', 'provision' ]
+
 - name: Create and volumes for each worker droplet
   delegate_to: 127.0.0.1
   community.digitalocean.digital_ocean_block_storage:

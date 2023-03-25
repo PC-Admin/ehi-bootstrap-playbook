@@ -36,7 +36,12 @@
     state: present
   with_dict:
     'do_droplet_id': '{{ new_server_info.data.droplet.id }}'
-  when: do_droplet_id is defined
+  when: new_server_info is defined
+
+- name: Gather facts about the controller system
+  ansible.builtin.setup:
+  delegate_to: 127.0.0.1
+  run_once: true
 
 - name: Add SSH config entry for host
   delegate_to: 127.0.0.1
@@ -51,6 +56,7 @@
           Port 22
           IdentityFile {{ ssh_key_file_private }}
           IdentitiesOnly=yes
+  when: ansible_system == 'Linux'
 
 - name: Add HOSTALIASES environment variable to ~/.profile
   delegate_to: 127.0.0.1
@@ -60,6 +66,7 @@
     line: "HOSTALIASES ~/.hosts"
     mode: '0600'
     state: present
+  when: ansible_system == 'Linux'
 
 - name: Add host entry to ~/.hosts file
   delegate_to: 127.0.0.1
@@ -70,6 +77,7 @@
     line: "{{ server_ipv4 }} {{ awx_subdomain }}.{{ awx_base_domain }}"
     mode: '0600'
     state: present
+  when: ansible_system == 'Linux'
 
 - name: Check known_hosts for {{ inventory_hostname }}
   local_action: shell ssh-keygen -F {{ inventory_hostname }}
@@ -82,8 +90,34 @@
     ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
   when: has_entry_in_known_hosts_file.rc == 1
 
-- name: Wait for SSH connection to become available, with 5 seconds between checks, for up to 2 minutes
-  delegate_to: "{{ awx_subdomain }}.{{ awx_base_domain }}"
+#- name: Wait 60 seconds for Droplets to fire up
+#  ansible.builtin.pause:
+#    seconds: 60
+
+- name: Wait for the host to become reachable on port 22 (1/2)
+  #delegate_to: localhost
+  wait_for:
+    host: "{{ server_ipv4 }}"
+    port: 22
+    state: started
+    delay: 5
+    timeout: 60
+
+- name: Wait for the host to become reachable on port 22 (2/2)
+  #delegate_to: localhost
+  wait_for:
+    host: "{{ server_ipv4 }}"
+    port: 22
+    state: started
+    delay: 5
+    timeout: 60
+
+- name: Wait for SSH connection to become available, with 5 seconds between checks, for a minute
+  #delegate_to: "{{ awx_subdomain }}.{{ awx_base_domain }}"
   wait_for_connection:
     sleep: 5
-    timeout: 120
+    timeout: 60
+  register: ssh_connection_result
+  until: ssh_connection_result is success
+  #retries: 3
+  #delay: 10

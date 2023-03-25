@@ -1,0 +1,5 @@
+---
+
+- name: Gather facts when provision tag is not specified
+  setup: # This module gathers facts
+  tags: [ 'always', 'rke2-setup' ]

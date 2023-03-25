@@ -1,15 +1,29 @@
 ---
 
-- name: Detach and delete all the digitalocean volumes
-  community.digitalocean.digital_ocean_block_storage:
-    volume_name: "{{ ( inventory_hostname | split('.') )[0] }}volume{{ item }}"
-    state: absent
-    command: attach
+- name: Get current droplet details
+  delegate_to: 127.0.0.1
+  community.digitalocean.digital_ocean_droplet_info:
+    api_token: '{{ do_api_token }}'
+    id: "{{ do_droplet_id }}"
+  register: droplet_info
+
+- name: Detach all the DigitalOcean volumes
+  delegate_to: 127.0.0.1
+  community.digitalocean.digital_ocean_droplet:
+    state: present
+    id: "{{ do_droplet_id }}"
     api_token: '{{ do_api_token }}'
     region: "{{ do_droplet_region }}"
-    block_size: "{{ volume_size | int }}"
-    description: "Volume {{ item }} for {{ inventory_hostname }}"
-    droplet_id: "{{ droplet_id }}"
+    volumes: "{{ droplet_info.droplet.volumes | difference([(inventory_hostname | split('.'))[0] + 'volume' + item|string]) }}"
   loop: "{{ range(1, number_of_volumes + 1)|list }}"
-  when: ( rke2_worker | bool )
-  tags: [ 'never', 'teardown' ]
+  when: rke2_type == 'agent'
+
+- name: Delete all the DigitalOcean volumes
+  delegate_to: 127.0.0.1
+  community.digitalocean.digital_ocean_block_storage:
+    state: absent
+    volume_name: "{{ ( inventory_hostname | split('.') )[0] }}volume{{ item }}"
+    api_token: '{{ do_api_token }}'
+    region: "{{ do_droplet_region }}"
+  loop: "{{ range(1, number_of_volumes + 1)|list }}"
+  when: rke2_type == 'agent'

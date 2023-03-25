@@ -25,7 +25,7 @@
 #- debug:
 #    msg: "{{ ssh_key_id_array }}"
 
-- name: Spawn a new Digital Ocean Droplet, collect the IPv4+IPv6 addresses
+- name: Spawn a new Digital Ocean Droplet for each node, collect the IPv4+IPv6 addresses
   delegate_to: 127.0.0.1
   community.digitalocean.digital_ocean_droplet:
     state: present
@@ -38,8 +38,9 @@
     ipv6: yes
     wait: yes
     unique_name: yes
-    tags: awx
+    tags: "{{ 'rke2-master' if rke2_type == 'server' else 'rke2-worker' if rke2_type == 'agent' }}"
   register: new_server_info
+  #when: rke2_type == 'server'
 
 - debug:
     msg: "{{ new_server_info }}"

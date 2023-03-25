@@ -1,12 +1,12 @@
 
 [masters]
-awx1.perthchat2.org ansible_host=awx1.perthchat2.org ansible_ssh_user=root
-awx2.perthchat2.org ansible_host=awx2.perthchat2.org ansible_ssh_user=root
-awx3.perthchat2.org ansible_host=awx3.perthchat2.org ansible_ssh_user=root
+awx1.example.org ansible_host=awx1.example.org ansible_ssh_user=root
+awx2.example.org ansible_host=awx2.example.org ansible_ssh_user=root
+awx3.example.org ansible_host=awx3.example.org ansible_ssh_user=root
 
 [workers]
-awx4.perthchat2.org ansible_host=awx4.perthchat2.org ansible_ssh_user=root
-awx5.perthchat2.org ansible_host=awx5.perthchat2.org ansible_ssh_user=root
+awx4.example.org ansible_host=awx4.example.org ansible_ssh_user=root
+awx5.example.org ansible_host=awx5.example.org ansible_ssh_user=root
 
 [k8s_cluster:children]
 masters

@@ -2,6 +2,7 @@
 
 - debug:
     msg: "ansible_play_hosts: {{ ansible_play_hosts }}"
+  run_once: True
 
 - name: Create DigitalOcean Load Balancer #, add all Droplets with the 'awx' tag
   delegate_to: 127.0.0.1
@@ -10,11 +11,11 @@
     state: present
     region: "{{ do_droplet_region }}"
     forwarding_rules:
-      - entry_protocol: http
-        entry_port: 6443
-        target_protocol: http
-        target_port: 6443
-    tag: awx
+      - entry_protocol: https
+        entry_port: 9345
+        target_protocol: https
+        target_port: 9345
+    tag: rke2-master
     #droplet_ids: "{{ droplet_ids }}"
     oauth_token: '{{ do_api_token }}'
   run_once: True
@@ -29,3 +30,20 @@
 
 - debug:
     msg: "load_balancer_facts: {{ load_balancer_facts }}"
+
+- name: Assign load balancer IPv4 to the rke2_api_ip variable
+  set_fact:
+    rke2_api_ip: "{{ load_balancer_facts.data | json_query(query) | first }}"
+  vars:
+    query: "[?name=='leader.{{ awx_base_domain }}'].ip"
+  run_once: True
+
+- name: Add rke2_api_ip to group variables file
+  delegate_to: 127.0.0.1
+  lineinfile:
+    path: "{{ playbook_dir }}/group_vars/all.yml"
+    insertafter: "^# RKE2 Variables.*$"
+    regexp: "^rke2_api_ip:"
+    line: 'rke2_api_ip: "{{ rke2_api_ip }}"'
+    state: present
+  run_once: True

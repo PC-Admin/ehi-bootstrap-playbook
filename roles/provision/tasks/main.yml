@@ -1,4 +1,8 @@
 
+# Deletes all block storage devices from each DigitalOcean Droplet
+#- import_tasks: "{{ role_path }}/tasks/block_storage_remove.yml"
+#  tags: [ 'never', 'teardown' ]
+
 # Creates DigitalOcean Droplets
 - import_tasks: "{{ role_path }}/tasks/do_droplet_create.yml"
   tags: [ 'never', 'provision' ]
@@ -34,7 +38,3 @@
 # Adds block storage devices to each DigitalOcean Droplet
 - import_tasks: "{{ role_path }}/tasks/block_storage_add.yml"
   tags: [ 'never', 'provision' ]
-
-# Deletes all block storage devices from each DigitalOcean Droplet
-- import_tasks: "{{ role_path }}/tasks/block_storage_add.yml"
-  tags: [ 'never', 'teardown' ]

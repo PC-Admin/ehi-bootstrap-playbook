@@ -5,39 +5,52 @@
 - name: Print the RKE2 version
   debug:
     msg: "RKE2 version: {{ rke2_version }}"
+  tags: [ 'never', 'rke2-setup' ]
 
 # Print the RKE2 server version
 
 - name: Print the RKE2 server version
   debug:
     msg: "RKE2 server version: {{ rke2_server_version }}"
+  ignore_errors: True
+  tags: [ 'never', 'rke2-setup' ]
 
 # Print the RKE2 agent version
 
 - name: Print the RKE2 agent version
   debug:
     msg: "RKE2 agent version: {{ rke2_agent_version }}"
+  ignore_errors: True
+  tags: [ 'never', 'rke2-setup' ]
 
 # Print the RKE2 server image
 
 - name: Print the RKE2 server image
   debug:
     msg: "RKE2 server image: {{ rke2_server_image }}"
+  ignore_errors: True
+  tags: [ 'never', 'rke2-setup' ]
 
 # Print the RKE2 agent image
 
 - name: Print the RKE2 agent image
   debug:
     msg: "RKE2 agent image: {{ rke2_agent_image }}"
+  ignore_errors: True
+  tags: [ 'never', 'rke2-setup' ]
 
 # Print rke2_api_ip variable
 
 - name: Print rke2_api_ip variable
   debug:
     msg: "rke2_api_ip: {{ rke2_api_ip }}"
+  ignore_errors: True
+  tags: [ 'never', 'rke2-setup' ]
 
 # Print rke2_token variable
 
 - name: Print rke2_api_ip variable
   debug:
     msg: "rke2_token: {{ rke2_token }}"
+  ignore_errors: True
+  tags: [ 'never', 'rke2-setup' ]
