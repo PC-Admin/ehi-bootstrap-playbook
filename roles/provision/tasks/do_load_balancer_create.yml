@@ -4,6 +4,12 @@
     msg: "ansible_play_hosts: {{ ansible_play_hosts }}"
   run_once: True
 
+- name: DEBUG print do_certificate variable
+  debug:
+    msg: "do_certificate: {{ do_certificate }}"
+  run_once: True
+  tags: [ 'never', 'provision' ]
+
 - name: Create DigitalOcean Load Balancer #, add all Droplets with the 'rke2-master' tag
   delegate_to: 127.0.0.1
   community.digitalocean.digital_ocean_load_balancer:
@@ -15,7 +21,7 @@
         entry_port: 9345
         target_protocol: https
         target_port: 9345
-        tls_passthrough: true
+        certificate_id: "{{ do_certificate.id }}"
     tag: rke2-master
     #droplet_ids: "{{ droplet_ids }}"
     oauth_token: '{{ do_api_token }}'

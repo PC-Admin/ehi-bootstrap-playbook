@@ -19,6 +19,10 @@
 - import_tasks: "{{ role_path }}/tasks/generate_initial_variables.yml"
   tags: [ 'never', 'provision' ]
 
+# Create TLS keys for RKE2 and the Load Balancer
+- import_tasks: "{{ role_path }}/tasks/tls_keys.yml"
+  tags: [ 'never', 'provision' ]
+
 # Creates a DigitalOcean Load Balancer
 - import_tasks: "{{ role_path }}/tasks/do_load_balancer_create.yml"
   tags: [ 'never', 'provision' ]
@@ -27,6 +31,10 @@
 - import_tasks: "{{ role_path }}/tasks/do_load_balancer_delete.yml"
   tags: [ 'never', 'teardown' ]
 
+# Adds block storage devices to each DigitalOcean Droplet
+- import_tasks: "{{ role_path }}/tasks/block_storage_add.yml"
+  tags: [ 'never', 'provision' ]
+
 # Creates a Cloudflare DNS entry
 - import_tasks: "{{ role_path }}/tasks/cloudflare_dns_create.yml"
   tags: [ 'never', 'provision' ]
@@ -34,7 +42,3 @@
 # Deletes a Cloudflare DNS entry
 - import_tasks: "{{ role_path }}/tasks/cloudflare_dns_delete.yml"
   tags: [ 'never', 'teardown' ]
-
-# Adds block storage devices to each DigitalOcean Droplet
-- import_tasks: "{{ role_path }}/tasks/block_storage_add.yml"
-  tags: [ 'never', 'provision' ]

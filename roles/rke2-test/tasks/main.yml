@@ -54,3 +54,15 @@
     msg: "rke2_token: {{ rke2_token }}"
   ignore_errors: True
   tags: [ 'never', 'rke2-setup' ]
+
+- name: Confirm cluster is functional
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.shell: |
+      /var/lib/rancher/rke2/bin/kubectl get nodes --kubeconfig /etc/rancher/rke2/rke2.yaml
+  register: cluster_status
+  run_once: True
+
+- name: Display cluster status output
+  ansible.builtin.debug:
+    msg: "{{ cluster_status.stdout_lines }}"
+  run_once: True

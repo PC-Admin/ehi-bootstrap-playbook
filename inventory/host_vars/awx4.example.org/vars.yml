@@ -7,11 +7,8 @@ rancher_url: rancher.example.org
 certbot_email: example@protonmail.com
 
 # RKE2 Settings
-rke2_load_balancer: leader.example.org
-#rke2_bootstrap_node: awx1.example.org
 rke2_ha_mode: true
 rke2_type: agent
-#rke2_api_ip : 192.168.123.100
 rke2_download_kubeconf: true
 
 # AWX Settings

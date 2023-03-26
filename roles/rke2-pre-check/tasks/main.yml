@@ -2,4 +2,26 @@
 
 - name: Gather facts when provision tag is not specified
   setup: # This module gathers facts
-  tags: [ 'always', 'rke2-setup' ]
+  tags: [ 'never', 'rke2-setup' ]
+
+- name: Ensure /etc/rke2/ directory exists on RKE2 server nodes
+  file:
+    path: /etc/rke2/
+    state: directory
+    mode: '0755'
+  when: rke2_type == 'server'
+  tags: [ 'never', 'rke2-setup' ]
+
+- name: Copy TLS certificate and key to RKE2 server nodes
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/rke2/{{ item | basename }}"
+    owner: root
+    group: root
+    mode: '0600'
+  with_items:
+    - "{{ playbook_dir }}/certs/tls.key"
+    - "{{ playbook_dir }}/certs/tls.csr"
+    - "{{ playbook_dir }}/certs/tls.crt"
+  when: rke2_type == 'server'
+  tags: [ 'never', 'rke2-setup' ]
