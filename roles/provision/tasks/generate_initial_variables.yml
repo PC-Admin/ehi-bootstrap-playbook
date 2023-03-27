@@ -36,7 +36,7 @@
     state: present
   with_dict:
     'do_droplet_id': '{{ new_server_info.data.droplet.id }}'
-  when: new_server_info is defined
+  when: ( new_server_info is defined ) and ( new_server_info.data.droplet.id is defined )
 
 - name: Gather facts about the controller system
   ansible.builtin.setup:
@@ -89,28 +89,6 @@
   set_fact:
     ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
   when: has_entry_in_known_hosts_file.rc == 1
-
-#- name: Wait 60 seconds for Droplets to fire up
-#  ansible.builtin.pause:
-#    seconds: 60
-
-- name: Wait for the host to become reachable on port 22 (1/2)
-  #delegate_to: localhost
-  wait_for:
-    host: "{{ server_ipv4 }}"
-    port: 22
-    state: started
-    delay: 5
-    timeout: 60
-
-- name: Wait for the host to become reachable on port 22 (2/2)
-  #delegate_to: localhost
-  wait_for:
-    host: "{{ server_ipv4 }}"
-    port: 22
-    state: started
-    delay: 5
-    timeout: 60
 
 - name: Wait for SSH connection to become available, with 5 seconds between checks, for a minute
   #delegate_to: "{{ awx_subdomain }}.{{ awx_base_domain }}"

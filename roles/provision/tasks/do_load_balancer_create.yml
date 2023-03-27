@@ -4,11 +4,11 @@
     msg: "ansible_play_hosts: {{ ansible_play_hosts }}"
   run_once: True
 
-- name: DEBUG print do_certificate variable
-  debug:
-    msg: "do_certificate: {{ do_certificate }}"
-  run_once: True
-  tags: [ 'never', 'provision' ]
+#- name: DEBUG print do_certificate variable
+#  debug:
+#    msg: "do_certificate: {{ do_certificate }}"
+#  run_once: True
+#  tags: [ 'never', 'provision' ]
 
 - name: Create DigitalOcean Load Balancer #, add all Droplets with the 'rke2-master' tag
   delegate_to: 127.0.0.1
@@ -21,9 +21,8 @@
         entry_port: 9345
         target_protocol: https
         target_port: 9345
-        certificate_id: "{{ do_certificate.id }}"
+        tls_passthrough: true
     tag: rke2-master
-    #droplet_ids: "{{ droplet_ids }}"
     oauth_token: '{{ do_api_token }}'
   run_once: True
   tags: [ 'never', 'provision' ]
@@ -38,11 +37,22 @@
 - debug:
     msg: "load_balancer_facts: {{ load_balancer_facts }}"
 
-- name: Assign load balancer IPv4 to the rke2_api_ip variable
+#- name: Assign load balancer IPv4 to the rke2_api_ip variable
+#  set_fact:
+#    rke2_api_ip: "{{ load_balancer_facts.data | json_query(query) | first }}"
+#  vars:
+#    query: "[?name=='leader.{{ awx_base_domain }}'].ip"
+#  run_once: True
+
+- name: Collect public IPv4 address of RKE2 bootstrap node
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.shell: |
+      ip addr show eth0 | grep -Po 'inet \K[\d.]+'
+  register: rke2_bootstrap_node_ipv4
+
+- name: HACK assign bootstrap nodes IP to the rke2_api_ip variable
   set_fact:
-    rke2_api_ip: "{{ load_balancer_facts.data | json_query(query) | first }}"
-  vars:
-    query: "[?name=='leader.{{ awx_base_domain }}'].ip"
+    rke2_api_ip: "{{ rke2_bootstrap_node_ipv4.stdout }}"
   run_once: True
 
 - name: Add rke2_api_ip to group variables file
@@ -53,4 +63,25 @@
     regexp: "^rke2_api_ip:"
     line: 'rke2_api_ip: "{{ rke2_api_ip }}"'
     state: present
+  run_once: True
+
+- name: Create an A record for the Load Balancer
+  delegate_to: 127.0.0.1
+  community.general.cloudflare_dns:
+    zone: '{{ awx_base_domain }}'
+    record: "{{ rke2_load_balancer | regex_replace('(\\.)(.*)$', '') }}"
+    type: A
+    value: '{{ rke2_api_ip }}'
+    account_email: '{{ cloudflare_email }}'
+    account_api_token: '{{ cloudflare_api_token }}'
+    state: present
+  when: ( rke2_api_ip | length > 0 )
+  register: lb_record_ipv4
+  run_once: True
+
+- name: Print the new Load Balancer IPv4 DNS record
+  delegate_to: 127.0.0.1
+  ansible.builtin.debug:
+    msg: Load Balancer Record IPv4 - {{ lb_record_ipv4 }}
+  when: ( rke2_api_ip | length > 0 )
   run_once: True

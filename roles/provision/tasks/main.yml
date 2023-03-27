@@ -4,11 +4,19 @@
 #  tags: [ 'never', 'teardown' ]
 
 # Creates DigitalOcean Droplets
-- import_tasks: "{{ role_path }}/tasks/do_droplet_create.yml"
-  tags: [ 'never', 'provision' ]
+#- import_tasks: "{{ role_path }}/tasks/do_droplet_create.yml"
+#  tags: [ 'never', 'provision' ]
 
 # Deletes DigitalOcean Droplets
-- import_tasks: "{{ role_path }}/tasks/do_droplet_delete.yml"
+#- import_tasks: "{{ role_path }}/tasks/do_droplet_delete.yml"
+#  tags: [ 'never', 'teardown' ]
+
+# Creates Proxmox VMs
+- import_tasks: "{{ role_path }}/tasks/proxmox_vm_create.yml"
+  tags: [ 'never', 'provision' ]
+
+# Delete Proxmox VMs
+- import_tasks: "{{ role_path }}/tasks/proxmox_vm_delete.yml"
   tags: [ 'never', 'teardown' ]
 
 # Save the Servers IP address
@@ -20,12 +28,12 @@
   tags: [ 'never', 'provision' ]
 
 # Create TLS keys for RKE2 and the Load Balancer
-- import_tasks: "{{ role_path }}/tasks/tls_keys.yml"
-  tags: [ 'never', 'provision' ]
+#- import_tasks: "{{ role_path }}/tasks/tls_keys.yml"
+#  tags: [ 'never', 'provision' ]
 
 # Creates a DigitalOcean Load Balancer
-- import_tasks: "{{ role_path }}/tasks/do_load_balancer_create.yml"
-  tags: [ 'never', 'provision' ]
+#- import_tasks: "{{ role_path }}/tasks/do_load_balancer_create.yml"
+#  tags: [ 'never', 'provision' ]
 
 # Deletes the DigitalOcean Load Balancer
 - import_tasks: "{{ role_path }}/tasks/do_load_balancer_delete.yml"
@@ -42,3 +50,7 @@
 # Deletes a Cloudflare DNS entry
 - import_tasks: "{{ role_path }}/tasks/cloudflare_dns_delete.yml"
   tags: [ 'never', 'teardown' ]
+
+# Create TLS keys with letsencrypt for RKE2 and the Load Balancer
+#- import_tasks: "{{ role_path }}/tasks/tls_keys_letsencrypt.yml"
+#  tags: [ 'never', 'provision' ]

@@ -1,0 +1,9 @@
+server: https://{{ rke2_bootstrap_node }}:9345
+token: {{ rke2_token }}
+data-dir: /var/lib/rancher/rke2
+cni: canal
+tls-san:
+node-taint:
+  - CriticalAddonsOnly=true:NoExecute
+snapshotter: overlayfs
+node-name: {{ inventory_hostname }}
