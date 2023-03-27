@@ -5,11 +5,6 @@
 
 # print new_server_info variable
 
-- name: Print new_server_info variable
-  debug:
-    msg: "new_server_info: {{ new_server_info }}"
-  tags: [ 'never', 'provision' ]
-
 - name: Create and volumes for each worker droplet
   delegate_to: 127.0.0.1
   community.digitalocean.digital_ocean_block_storage:
@@ -20,7 +15,7 @@
     region: "{{ do_droplet_region }}"
     block_size: "{{ volume_size | int }}"
     description: "Volume {{ item }} for {{ inventory_hostname }}"
-    droplet_id: "{{ new_server_info.data.droplet.id }}"
+    droplet_id: "{{ droplet_id }}"
   #register: volumes
   loop: "{{ range(1, number_of_volumes + 1)|list }}"
   when: ( rke2_type == "agent" )
@@ -35,7 +30,7 @@
     command: attach
     api_token: '{{ do_api_token }}'
     region: "{{ do_droplet_region }}"
-    droplet_id: "{{ new_server_info.data.droplet.id }}"
+    droplet_id: "{{ droplet_id }}"
   #register: volumes
   loop: "{{ range(1, number_of_volumes + 1)|list }}"
   when: ( rke2_type == "agent" )

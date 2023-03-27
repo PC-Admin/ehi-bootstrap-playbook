@@ -14,10 +14,25 @@
     full: true
     state: present
     timeout: 300
-  register: new_server_info
+  register: new_server_info_vm
   with_items: "{{ ansible_play_hosts }}"
   when: proxmox_method == "clone"
   run_once: true
+
+- name: "Print each entry from new_server_info_vm.results"
+  debug:
+    msg: "{{ item }}"
+  with_items: "{{ new_server_info_vm.results }}"
+  when: ( new_server_info_vm is defined ) and ( proxmox_method == "clone" )
+  run_once: true
+
+- name: "Print the vmid of each entry from new_server_info_vm.results"
+  debug:
+    msg: "{{ item.vmid }}"
+  with_items: "{{ new_server_info_vm.results }}"
+  when: ( new_server_info_vm is defined ) and ( proxmox_method == "clone" )
+  run_once: true
+  ignore_errors: true
 
 - name: "Create LXC containers for each host (sequentially)"
   delegate_to: 127.0.0.1
@@ -39,21 +54,23 @@
     state: present
     timeout: 300
     netif: '{"net0":"name=eth0,bridge=vmbr0,ip=dhcp,ip6=dhcp,type=veth"}'
-  register: new_server_info
+  register: new_server_info_lxc
   with_items: "{{ ansible_play_hosts }}"
   when: proxmox_method == "lxc"
   run_once: true
 
-- name: "Print each entry from new_server_info.results"
+- name: "Print each entry from new_server_info_lxc.results"
   debug:
     msg: "{{ item }}"
-  with_items: "{{ new_server_info.results }}"
+  with_items: "{{ new_server_info_lxc.results }}"
+  when: ( new_server_info_lxc is defined ) and ( proxmox_method == "lxc" )
   run_once: true
 
-- name: "Print the vmid of each entry from new_server_info.results"
+- name: "Print the vmid of each entry from new_server_info_lxc.results"
   debug:
     msg: "{{ item.vmid }}"
-  with_items: "{{ new_server_info.results }}"
+  with_items: "{{ new_server_info_lxc.results }}"
+  when: ( new_server_info_lxc is defined ) and ( proxmox_method == "lxc" )
   run_once: true
   ignore_errors: true
 
@@ -67,8 +84,15 @@
     vmid: "{{ item.vmid }}"
     node: "{{ proxmox_node }}"
     state: started
-  register: new_server_info_2
-  with_items: "{{ new_server_info.results }}"
+  register: new_server_info_vm2
+  with_items: "{{ new_server_info_vm.results }}"
+  when: proxmox_method == "clone"
+  run_once: true
+
+- name: Print stdout of new_server_info_vm2.results
+  debug:
+    msg: "new_server_info_vm2: {{ item }}"
+  with_items: "{{ new_server_info_vm2.results }}"
   when: proxmox_method == "clone"
   run_once: true
 
@@ -82,22 +106,17 @@
     node: "{{ proxmox_node }}"
     hostname: "{{ item }}"
     state: started
-  register: new_server_info_2
+  register: new_server_info_lxc2
   loop: "{{ ansible_play_hosts }}"
   when: proxmox_method == "lxc"
   run_once: true
 
-- name: Print stdout of new_server_info_2.results
+- name: Print stdout of new_server_info_lxc2.results
   debug:
-    msg: "new_server_info_2: {{ item }}"
-  with_items: "{{ new_server_info_2.results }}"
+    msg: "new_server_info_lxc2: {{ item }}"
+  with_items: "{{ new_server_info_lxc2.results }}"
+  when: proxmox_method == "lxc"
   run_once: true
-
-- name: "Add public SSH key to authorized_keys"
-  authorized_key:
-    user: "{{ proxmox_lxc_user }}"
-    state: present
-    key: "{{ public_ssh_key }}"
 
 - name: Set string fact for checking is QEMU is running yet
   set_fact:
@@ -111,7 +130,7 @@
   until: qemu_guest_info.stderr != qemu_unloaded_status
   retries: 12
   delay: 15
-  with_items: "{{ new_server_info.results | json_query('[*].vmid') | list }}"
+  with_items: "{{ new_server_info_vm.results | json_query('[*].vmid') | list }}"
   when: proxmox_method == "clone"
   run_once: true
 
@@ -190,11 +209,11 @@
   lineinfile:
     path: './inventory/host_vars/{{ item.0 }}/vars.yml'
     regexp: "^#?vmid:.*$"
-    line: "vmid: {{ item.1.vmid }}"
+    line: "vmid: {{ item.1.vmid | regex_replace('^VM (\\d+) started$', '\\1') }}"
     mode: '0600'
     state: present
   when: ( proxmox_method == "clone" ) and ( item.1.vmid is defined ) and ( item.1.vmid | string | length > 0 ) 
-  loop: "{{ ansible_play_hosts | zip(new_server_info.results) | list }}"
+  loop: "{{ ansible_play_hosts | zip(new_server_info_vm.results) | list }}"
   run_once: true
 
 - name: Add vmid line to each hosts inventory file

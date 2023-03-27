@@ -36,12 +36,12 @@
 #  tags: [ 'never', 'provision' ]
 
 # Deletes the DigitalOcean Load Balancer
-- import_tasks: "{{ role_path }}/tasks/do_load_balancer_delete.yml"
-  tags: [ 'never', 'teardown' ]
+#- import_tasks: "{{ role_path }}/tasks/do_load_balancer_delete.yml"
+#  tags: [ 'never', 'teardown' ]
 
 # Adds block storage devices to each DigitalOcean Droplet
-- import_tasks: "{{ role_path }}/tasks/block_storage_add.yml"
-  tags: [ 'never', 'provision' ]
+#- import_tasks: "{{ role_path }}/tasks/block_storage_add.yml"
+#  tags: [ 'never', 'provision' ]
 
 # Creates a Cloudflare DNS entry
 - import_tasks: "{{ role_path }}/tasks/cloudflare_dns_create.yml"

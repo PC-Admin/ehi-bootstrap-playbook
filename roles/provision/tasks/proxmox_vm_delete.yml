@@ -46,9 +46,13 @@
   set_fact:
     stopped_status: "status: stopped"
 
+- name: DEBUG print vmid
+  debug:
+    msg: "vmid: {{ vmid }}"
+
 - name: Check if target VM is stopped for up to 180 seconds
   delegate_to: "{{ proxmox_node }}"
-  command: sudo qm status {{ vmid }}
+  command: "sudo qm status {{ vmid }}"
   when: proxmox_method == "clone"
   register: vm_status
   until: vm_status.stdout == stopped_status

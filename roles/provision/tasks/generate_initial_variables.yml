@@ -1,43 +1,5 @@
 ---
 
-# I suspect these aren't even needed...
-
-#- name: Add server_ipv4 line to inventory file
-#  delegate_to: 127.0.0.1
-#  lineinfile:
-#    path: './inventory/host_vars/{{ awx_subdomain }}.{{ awx_base_domain }}/vars.yml'
-#    regexp: "^#? *{{ item.key | regex_escape() }}:"
-#    line: "{{ item.key }}: {{ item.value }}"
-#    mode: '0600'
-#    state: present
-#  with_dict:
-#    'server_ipv4': '"{{ server_ipv4 }}"'
-#  when: server_ipv4|length > 0
-
-#- name: Add server_ipv6 line to inventory file
-#  delegate_to: 127.0.0.1
-#  lineinfile:
-#    path: './inventory/host_vars/{{ awx_subdomain }}.{{ awx_base_domain }}/vars.yml'
-#    regexp: "^#? *{{ item.key | regex_escape() }}:"
-#    line: "{{ item.key }}: {{ item.value }}"
-#    mode: '0600'
-#    state: present
-#  with_dict:
-#    'server_ipv6': '"{{ server_ipv6 }}"'
-#  when: server_ipv6|length > 0
-
-- name: Add do_droplet_id line to inventory file
-  delegate_to: 127.0.0.1
-  lineinfile:
-    path: './inventory/host_vars/{{ awx_subdomain }}.{{ awx_base_domain }}/vars.yml'
-    regexp: "^{{ item.key }}:.*$"
-    line: "{{ item.key }}: {{ item.value }}"
-    mode: '0600'
-    state: present
-  with_dict:
-    'do_droplet_id': '{{ new_server_info.data.droplet.id }}'
-  when: ( new_server_info is defined ) and ( new_server_info.data.droplet.id is defined )
-
 - name: Gather facts about the controller system
   ansible.builtin.setup:
   delegate_to: 127.0.0.1
@@ -91,11 +53,8 @@
   when: has_entry_in_known_hosts_file.rc == 1
 
 - name: Wait for SSH connection to become available, with 5 seconds between checks, for a minute
-  #delegate_to: "{{ awx_subdomain }}.{{ awx_base_domain }}"
   wait_for_connection:
     sleep: 5
     timeout: 60
   register: ssh_connection_result
   until: ssh_connection_result is success
-  #retries: 3
-  #delay: 10
