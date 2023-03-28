@@ -35,13 +35,18 @@
   when: rke2_type == 'server'
   tags: [ 'never', 'rke2-setup' ]
 
-- name: Ensure /etc/rancher/rke2 directory exists on RKE2 server nodes
+- name: Ensure /etc/rancher/rke2 directory exists on all RKE2 nodes
   file:
     path: /etc/rancher/rke2
     state: directory
     mode: '0755'
-  when: rke2_type == 'server'
   tags: [ 'never', 'rke2-setup' ]
+
+- name: Set hostname for each RKE2 node to its domain
+  hostname:
+    name: "{{ awx_subdomain }}.{{ awx_base_domain }}"
+  tags: [ 'never', 'rke2-setup' ]
+
 
 #- name: Template the RKE2 config file
 #  template:
