@@ -50,23 +50,23 @@
   debug:
     msg: "vmid: {{ vmid }}"
 
-- name: Check if target VM is stopped for up to 180 seconds
+- name: Check if target VM is stopped for up to 120 seconds
   delegate_to: "{{ proxmox_node }}"
   command: "sudo qm status {{ vmid }}"
   when: proxmox_method == "clone"
   register: vm_status
   until: vm_status.stdout == stopped_status
   retries: 12
-  delay: 15
+  delay: 10
 
-- name: Check if target LXC container is stopped for up to 180 seconds
+- name: Check if target LXC container is stopped for up to 120 seconds
   delegate_to: "{{ proxmox_node }}"
   command: "sudo pct status {{ vmid }}"
   when: proxmox_method == "lxc"
   register: ct_status
   until: stopped_status in ct_status.stdout
   retries: 12
-  delay: 15
+  delay: 10
 
 - name: Delete the proxmox VM
   delegate_to: 127.0.0.1

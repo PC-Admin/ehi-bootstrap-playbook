@@ -2,6 +2,7 @@
 awx_base_domain: example.org
 rke2_load_balancer: leader.example.org
 rke2_bootstrap_node: awx1.example.org
+rke2_version: v1.24.11+rke2r1
 # Proxmox User/Token Variables
 proxmox_user: "root@pam"
 proxmox_token_id: "Example Token ID"
