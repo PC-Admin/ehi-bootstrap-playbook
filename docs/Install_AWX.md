@@ -41,21 +41,12 @@ After your finished you can delete these servers/records with the 'teardown' tag
 First add a backend and frontend definition to the /etc/haproxy/haproxy.cfg file:
 
 ```
-frontend http
-    bind *:80
+frontend tcp_frontend
+    bind *:9345
 
-    # HTTPS redirect
-    redirect scheme https code 301 if !{ ssl_fc }
-
-    mode http
+    mode tcp
     option tcplog
-    acl letsencrypt path_beg /.well-known/acme-challenge/
-    use_backend letsencrypt if letsencrypt
-
-    # Add this line to forward traffic to the RKE2 cluster
-    use_backend rke2_cluster if { hdr(host) -i leader.example.org }
-
-    default_backend blackhole
+    default_backend rke2_cluster
 
 backend rke2_cluster
     balance roundrobin
