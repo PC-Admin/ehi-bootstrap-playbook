@@ -2,23 +2,19 @@
 awx_base_domain: example.org
 rke2_load_balancer: leader.example.org
 rke2_bootstrap_node: awx1.example.org
-# DigitalOcean Variables
-do_droplet_region: sgp1
-do_api_token: << DigitalOcean API Token >>
-slug_size: s-4vcpu-8gb
-do_image: ubuntu-22-04-x64
-number_of_volumes: 2
-volume_size: 25
 # Proxmox User/Token Variables
 proxmox_user: "root@pam"
 proxmox_token_id: "Example Token ID"
 proxmox_token_secret: << Proxmox Token Secret >>
+number_of_volumes: 2
+volume_size: 25
 # SSH Variables (For DigitalOcean)
 ssh_key_file_public: ~/.ssh/testing_2022.pub
 ssh_key_file_private: ~/.ssh/testing_2022
 ssh_key_file_password: << SSH Key Passphrase >>
 public_ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AADFTJYPCF0uLvDUiO7mRdqkwiueeUgyTrK6R3WTN/dg0DJt michael@perthchat.org 11-2022"
 # RKE2 Variables
+rke2_api_ip: "10.1.1.100" # This is the IP of the load balancer
 rke2_token: << Strong user defined token >>
 # LetsEncrypt Variables
 letsencrypt_email: useremail@protonmail.com

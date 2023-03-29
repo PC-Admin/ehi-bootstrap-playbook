@@ -6,9 +6,20 @@ How to install this clustered AWX setup.
 
 ## Provision the Servers
 
-Provision at least 3 Debian 11 or Ubuntu 22.04 server with >=8GB RAM, disabled swap and a public IP, then setup SSH access to root@{{ awx_url }} account, these will be our Rancher/AWX servers.
+Provision at least 3 Ubuntu 22.04 servers with >=8GB RAM and with swap disabled, then setup SSH access to each servers root account, these will be our Rancher/AWX servers.
 
-Alternatively you can provision these servers and configure the DNS automatically using DigitalOcean or Proxmox and Cloudflare by running this playbook with the 'provision' tag:
+Alternatively you can provision these servers and configure the DNS automatically using Proxmox and Cloudflare (for the DNS) by:
+1) Save a VM template on Proxmox for an Ubuntu 22.04 with enough CPU/RAM and disk space. Ensure the SSH key in (/group_vrs/all.yml)[/group_vrs/all.yml] can be used to connect to the root account of this machine.
+2) Ensure the following variables are filled out in each hosts vars.yml file:
+```
+# Proxmox Settings
+proxmox_host: "10.1.1.150"      # the IP address of the target Proxmox node
+proxmox_node: "apollo"          # the hostname of the target Proxmox node
+proxmox_method: "clone"         # 'clone' or 'lxc'
+proxmox_template: "ubuntu22-8c-8g-32g"   # the name of your VM template
+proxmox_storage: "vm-storage"   # the Proxmox storage ID for the new VMs disk (eg: 'local-lvm')
+```
+3) Run this playbook with the 'provision' tag like so:
 
 `$ ansible-playbook -v -i ./inventory/hosts -t "provision" setup.yml`
 
