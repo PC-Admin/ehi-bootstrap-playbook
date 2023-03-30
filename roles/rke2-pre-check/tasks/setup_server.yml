@@ -1,0 +1,61 @@
+---
+
+- name: Set hostname for each RKE2 node to its domain
+  hostname:
+    name: "{{ awx_subdomain }}.{{ awx_base_domain }}"
+  tags: [ 'never', 'rke2-setup' ]
+
+- name: Disable all swap on AWX/Rancher server
+  ansible.builtin.command: swapoff -a
+
+#- name: Comment out swap partition in /etc/fstab
+#  ansible.builtin.lineinfile:
+#    path: /etc/fstab
+#    regexp: '^[^#].*swap.*$'
+#    line: '# {{ line }}'
+
+- name: Update repos
+  ansible.builtin.package:
+    update_cache: yes
+  register: package_status
+  until: package_status is success
+  delay: 6
+  retries: 10
+
+- name: Upgrade all packages
+  ansible.builtin.package:
+    name: "*"
+    state: latest
+  register: package_status
+  until: package_status is success
+  delay: 6
+  retries: 10
+
+- name: Add prerequisite packages
+  ansible.builtin.package:
+    pkg:
+    - ufw
+    - apt-transport-https
+    - gnupg2
+    - apt-listchanges
+    - git
+  register: package_status
+  until: package_status is success
+  delay: 6
+  retries: 10
+
+- name: Ensure /etc/rke2/ directory exists on RKE2 server nodes
+  file:
+    path: /etc/rke2/
+    state: directory
+    mode: '0755'
+  when: rke2_type == 'server'
+  tags: [ 'never', 'rke2-setup' ]
+
+- name: Ensure /etc/rancher/rke2 directory exists on all RKE2 nodes
+  file:
+    path: /etc/rancher/rke2
+    recurse: yes
+    state: directory
+    mode: '0755'
+  tags: [ 'never', 'rke2-setup' ]

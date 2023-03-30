@@ -14,7 +14,6 @@ rke2_download_kubeconf: true
 # Proxmox Settings
 proxmox_host: "10.1.1.150"
 proxmox_node: "pikachu"
-proxmox_method: "clone" # 'clone' or 'lxc'
 proxmox_template: "ubuntu22-8c-8g-32g"
 proxmox_storage: "vm-storage"
 #proxmox_lxc_cpus: 2

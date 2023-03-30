@@ -7,6 +7,7 @@ rke2_version: v1.24.11+rke2r1
 proxmox_user: "root@pam"
 proxmox_token_id: "Example Token ID"
 proxmox_token_secret: << Proxmox Token Secret >>
+proxmox_method: "clone" # 'clone' or 'lxc'
 number_of_volumes: 2
 volume_size: 25
 # SSH Variables (For DigitalOcean)

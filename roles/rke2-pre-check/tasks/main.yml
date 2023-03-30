@@ -1,83 +1,9 @@
 ---
 
-- name: Gather facts from each host
-  setup: # This module gathers facts
-  tags: [ 'never', 'rke2-setup' ]
+# Gather facts from each host and set other variables for the lablabs.rke2 role
+- import_tasks: "{{ role_path }}/tasks/gather_facts.yml"
+  tags: [ 'never', 'setup-rke2' ]
 
-- name: Create a dynamic group for controlplane nodes
-  group_by:
-    key: "controlplane_{{ 'yes' if (hostvars[inventory_hostname]['rke2_type'] is defined and hostvars[inventory_hostname]['rke2_type'] == 'server') else 'no' }}"
-  tags: [ 'never', 'rke2-setup' ]
-
-- name: Create a dynamic group for nodes with no rke2_type defined
-  group_by:
-    key: controlplane_no
-  tags: [ 'never', 'rke2-setup' ]
-  when: rke2_type is not defined
-
-- name: Create list of controlplane nodes
-  set_fact:
-    controlplane_nodes: "{{ groups['controlplane_yes'] }}"
-  run_once: True
-  tags: [ 'never', 'rke2-setup' ]
-
-- name: Set rke2_additional_sans variable
-  set_fact:
-    rke2_additional_sans: "{{ controlplane_nodes }}"
-  run_once: True
-  tags: [ 'never', 'rke2-setup' ]
-
-- name: Ensure /etc/rke2/ directory exists on RKE2 server nodes
-  file:
-    path: /etc/rke2/
-    state: directory
-    mode: '0755'
-  when: rke2_type == 'server'
-  tags: [ 'never', 'rke2-setup' ]
-
-- name: Ensure /etc/rancher/rke2 directory exists on all RKE2 nodes
-  file:
-    path: /etc/rancher/rke2
-    state: directory
-    mode: '0755'
-  tags: [ 'never', 'rke2-setup' ]
-
-- name: Set hostname for each RKE2 node to its domain
-  hostname:
-    name: "{{ awx_subdomain }}.{{ awx_base_domain }}"
-  tags: [ 'never', 'rke2-setup' ]
-
-
-#- name: Template the RKE2 config file
-#  template:
-#    src: "{{ role_path }}/templates/config.yaml.j2"
-#    dest: /etc/rancher/rke2/config.yaml
-#    owner: root
-#    group: root
-#    mode: '0644'
-#  when: rke2_type == 'server'
-#  tags: [ 'never', 'rke2-setup' ]
-
-#- name: Add every RKE2 server to the RKE2 config tls-san
-#  lineinfile:
-#    path: /etc/rancher/rke2/config.yaml
-#    regexp: '^tls-san:'
-#    line: "  - {{ item }}"
-#    insertafter: '^tls-san:'
-#  with_items: "{{ controlplane_nodes }}"
-#  when: rke2_type == 'server'
-#  tags: [ 'never', 'rke2-setup' ]
-
-#- name: Copy TLS certificate and key to RKE2 server nodes
-#  copy:
-#    src: "{{ item }}"
-#    dest: "/etc/rke2/{{ item | basename }}"
-#    owner: root
-#    group: root
-#    mode: '0600'
-#  with_items:
-#    - "{{ playbook_dir }}/certs/tls.key"
-#    - "{{ playbook_dir }}/certs/tls.csr"
-#    - "{{ playbook_dir }}/certs/tls.crt"
-#  when: rke2_type == 'server'
-#  tags: [ 'never', 'rke2-setup' ]
+# Setup the RKE2 server nodes for RKE2 deployment
+- import_tasks: "{{ role_path }}/tasks/setup_server.yml"
+  tags: [ 'never', 'setup-rke2' ]

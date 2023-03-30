@@ -1,0 +1,28 @@
+---
+
+- name: Gather facts from each host
+  setup: # This module gathers facts
+  tags: [ 'never', 'rke2-setup' ]
+
+- name: Create a dynamic group for controlplane nodes
+  group_by:
+    key: "controlplane_{{ 'yes' if (hostvars[inventory_hostname]['rke2_type'] is defined and hostvars[inventory_hostname]['rke2_type'] == 'server') else 'no' }}"
+  tags: [ 'never', 'rke2-setup' ]
+
+- name: Create a dynamic group for nodes with no rke2_type defined
+  group_by:
+    key: controlplane_no
+  tags: [ 'never', 'rke2-setup' ]
+  when: rke2_type is not defined
+
+- name: Create list of controlplane nodes
+  set_fact:
+    controlplane_nodes: "{{ groups['controlplane_yes'] }}"
+  run_once: True
+  tags: [ 'never', 'rke2-setup' ]
+
+- name: Set rke2_additional_sans variable
+  set_fact:
+    rke2_additional_sans: "{{ controlplane_nodes }}"
+  run_once: True
+  tags: [ 'never', 'rke2-setup' ]

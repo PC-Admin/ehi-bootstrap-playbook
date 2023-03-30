@@ -1,6 +1,6 @@
 ---
 
-- name: Create new disks in Proxmox (do not rewrite in case it exists already)
+- name: Create new disks for each agent node in Proxmox (do not rewrite in case it exists already)
   delegate_to: 127.0.0.1
   community.general.proxmox_disk:
     api_host: "{{ proxmox_host }}"
@@ -14,9 +14,10 @@
     storage: "{{ proxmox_storage }}"
     size: "{{ volume_size }}"
     state: present
+  when: rke2_type == "agent"
   with_sequence: start=1 end={{ number_of_volumes }}
   register: new_volumes
 
-- name: DEBUG print new volumes
-  debug:
-    msg: "{{ new_volumes }}"
+#- name: DEBUG print new volumes
+#  debug:
+#    msg: "{{ new_volumes }}"
