@@ -149,10 +149,12 @@
 #- name: qemu_guest_info
 #  debug:
 #    msg: "{{ qemu_guest_info }}"
+#  run_once: true
 
 #- name: qemu_guest_info.results
 #  debug:
 #    msg: "{{ qemu_guest_info.results }}"
+#  run_once: true
 
 #- name: "Print the stdout of each entry from qemu_guest_info.results"
 #  debug:

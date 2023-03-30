@@ -53,7 +53,3 @@
     state: present
   when: ( rke2_api_ip | length > 0 )
   run_once: True
-
-- name: Pause for 3 minutes to let CloudFlares DNS propagate
-  ansible.builtin.pause:
-    minutes: 3

@@ -58,3 +58,7 @@
     timeout: 60
   register: ssh_connection_result
   until: ssh_connection_result is success
+
+- name: Pause for 3 minutes to let CloudFlares DNS propagate
+  ansible.builtin.pause:
+    minutes: 3

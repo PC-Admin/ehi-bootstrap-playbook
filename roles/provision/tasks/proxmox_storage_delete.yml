@@ -1,6 +1,6 @@
 ---
 
-- name: Delete the extra disks on gent nodes in Proxmox
+- name: Delete the extra disks on agent nodes in Proxmox
   delegate_to: 127.0.0.1
   community.general.proxmox_disk:
     api_host: "{{ proxmox_host }}"
