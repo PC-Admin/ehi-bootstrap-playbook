@@ -4,9 +4,17 @@
 
 - name: Install Helm GPG key
   delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.apt_key:
-    url: https://baltocdn.com/helm/signing.asc
-    state: present
+  ansible.builtin.shell: curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+  args:
+    chdir: /usr/share/keyrings/
+  environment:
+    ANSIBLE_WARN_COMMAND_USAGE: 0
+  run_once: True
+
+- name: Collect dpkg --print-architecture
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.shell: dpkg --print-architecture
+  register: dpkg_architecture
   run_once: True
 
 - name: Setup /helm-stable-debian.list sources list
@@ -14,7 +22,7 @@
   ansible.builtin.copy:
     dest: /etc/apt/sources.list.d/helm-stable-debian.list
     content: |
-      deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main
+      deb [arch={{ dpkg_architecture.stdout }} signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main
     mode: '0644'
   run_once: True
 
@@ -53,12 +61,22 @@
 #root@awx1:~# /var/lib/rancher/rke2/bin/kubectl create namespace cert-manager --kubeconfig /etc/rancher/rke2/rke2.yaml
 #namespace/cert-manager created
 
+- name: Check if the Cert-Manager namespace exists
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get namespace cert-manager
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+  register: cert_manager_namespace_check
+  ignore_errors: True
+
 - name: Create a namespace for Cert-Manager
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl create namespace cert-manager
   environment:
     KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   run_once: True
+  when: "cert_manager_namespace_check.rc != 0 and 'not found' in cert_manager_namespace_check.stderr"
 
 ## Add the Jetstack Helm repository:
 
@@ -77,12 +95,23 @@
 #root@awx1:~# export KUBECONFIG=/etc/rancher/rke2/rke2.yaml
 #root@awx1:~# helm install   cert-manager jetstack/cert-manager   --namespace cert-manager   --version v1.6.1   --create-namespace
 
+- name: Check if Cert-Manager is already installed
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: helm list --namespace cert-manager --filter "^cert-manager$"
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  register: cert_manager_helm_check
+  run_once: True
+  ignore_errors: True
+
 - name: Deploy Cert-Manager using Helm
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.6.1 --create-namespace
   environment:
     KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   run_once: True
+  when: "'cert-manager' not in cert_manager_helm_check.stdout"
+
 
 ## Verify the Cert-Manager installation:
 
@@ -95,8 +124,14 @@
 - name: Verify the Cert-Manager installation
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get pods --namespace cert-manager
+  register: cert_manager_status
   environment:
     KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+
+- name: Display Cert-Manager status output
+  ansible.builtin.debug:
+    msg: "{{ cert_manager_status.stdout_lines }}"
   run_once: True
 
 ## Install Rancher
@@ -118,16 +153,35 @@
 #root@awx1:~# /var/lib/rancher/rke2/bin/kubectl create namespace cattle-system
 #namespace/cattle-system created
 
+- name: Check if the Rancher namespace exists
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get namespace cattle-system
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+  register: rancher_namespace_check
+  ignore_errors: True
+
 - name: Create a namespace for Rancher
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl create namespace cattle-system
   environment:
     KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   run_once: True
+  when: "rancher_namespace_check.rc != 0 and 'not found' in rancher_namespace_check.stderr"
 
 ## Install Rancher using Helm with a self-signed certificate:
 
 # root@awx1:~# helm install rancher rancher-latest/rancher --namespace cattle-system --set hostname=rancher.perthchat2.org --set ingress.tls.source=secret --create-namespace
+
+- name: Check if Rancher is already installed
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: helm list --namespace cattle-system --filter "^rancher$"
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  register: rancher_helm_check
+  run_once: True
+  ignore_errors: True
 
 - name: Install Rancher using Helm with a self-signed certificate
   delegate_to: "{{ rke2_bootstrap_node }}"
@@ -135,6 +189,7 @@
   environment:
     KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   run_once: True
+  when: "'rancher' not in rancher_helm_check.stdout"
 
 ## Verify the Rancher installation:
 
@@ -143,8 +198,14 @@
 - name: Verify the Rancher installation
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get pods --namespace cattle-system
+  register: rancher_status
   environment:
     KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+
+- name: Display Rancher output
+  ansible.builtin.debug:
+    msg: "{{ rancher_status.stdout_lines }}"
   run_once: True
 
 # Set the admin password for Rancher

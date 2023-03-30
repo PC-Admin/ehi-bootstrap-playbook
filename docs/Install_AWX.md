@@ -65,12 +65,14 @@ backend rke2_cluster
     option tcp-check
     tcp-check connect port 9345
     server awx1 awx1.example.org:9345 check
-    server awx2 awx2.example.org:9345 check
-    server awx3 awx3.example.org:9345 check
+    #server awx2 awx2.example.org:9345 check
+    #server awx3 awx3.example.org:9345 check
 ```
 
 Then reset the haproxy service:
 `$ sudo systemctl restart haproxy.service`
+
+Note: The other server nodes besides the bootstrap node are commented out, this is needed to deploy initially but once 3 of the server nodes are up you can include them here too.
 
 
 ## Install
