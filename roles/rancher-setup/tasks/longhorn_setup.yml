@@ -1,0 +1,149 @@
+---
+
+## Install Helm (on bootstrap node)
+
+- name: Install Helm GPG key
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.shell: curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+  args:
+    chdir: /usr/share/keyrings/
+  environment:
+    ANSIBLE_WARN_COMMAND_USAGE: 0
+  run_once: True
+
+- name: Collect dpkg --print-architecture
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.shell: dpkg --print-architecture
+  register: dpkg_architecture
+  run_once: True
+
+- name: Setup /helm-stable-debian.list sources list
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/helm-stable-debian.list
+    content: |
+      deb [arch={{ dpkg_architecture.stdout }} signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main
+    mode: '0644'
+  run_once: True
+
+- name: Update repos
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.package:
+    update_cache: yes
+  register: package_status
+  until: package_status is success
+  delay: 6
+  retries: 10
+  run_once: True
+
+- name: Install Helm
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.package:
+    name: helm
+    state: present
+  register: package_status
+  until: package_status is success
+  delay: 6
+  retries: 10
+  run_once: True
+
+#helm repo add longhorn https://charts.longhorn.io
+
+- name: Add the Longhorn Helm repository
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: helm repo add longhorn https://charts.longhorn.io
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+
+#helm repo update
+
+- name: Update the Helm repositories
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: helm repo update
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+
+#kubectl create namespace longhorn-system
+
+- name: Check if the Longhorn namespace exists
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get namespace longhorn-system
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+  register: longhorn_namespace_check
+  ignore_errors: True
+
+- name: Create a namespace for Longhorn
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl create namespace longhorn-system
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+  when: "longhorn_namespace_check.rc != 0 and 'not found' in longhorn_namespace_check.stderr"
+
+#helm install longhorn longhorn/longhorn --namespace longhorn-system
+
+- name: Check if Longhorn is already installed
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: helm list --namespace longhorn-system --filter "^longhorn$"
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  register: longhorn_helm_check
+  run_once: True
+  ignore_errors: True
+
+- name: Deploy Longhorn using Helm
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: helm install longhorn longhorn/longhorn --namespace longhorn-system
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+  when: "'longhorn' not in longhorn_helm_check.stdout"
+
+- name: Create partitions on extra disks
+  ansible.builtin.parted:
+    device: "/dev/vd{{ item | int | to_letter }}"
+    number: 1
+    state: present
+  loop: "{{ range(2, (number_of_volumes | int) + 2) | list }}"
+  when: rke2_type == "agent"
+
+- name: Create mount directories
+  ansible.builtin.file:
+    path: "/mnt/longhorn-bricks/brick{{ item }}"
+    state: directory
+  loop: "{{ range(1, number_of_volumes + 1)|list }}"
+  when: rke2_type == "agent"
+
+- name: Add prerequisite XFS packages
+  ansible.builtin.package:
+    pkg:
+      - xfsprogs
+  register: package_status
+  until: package_status is success
+  when: rke2_type == "agent"
+  delay: 6
+  retries: 10
+
+- name: Mount xfs partitions
+  ansible.builtin.mount:
+    path: "/mnt/longhorn-bricks/brick{{ item }}"
+    src: "/dev/vd{{ (item + 1) | to_letter }}"
+    fstype: xfs
+    state: mounted
+  loop: "{{ range(1, (number_of_volumes | int) + 1) | list }}"
+  when: rke2_type == "agent"
+
+
+- name: Configure Longhorn storage
+  ansible.builtin.shell: |
+    kubectl -n longhorn-system annotate nodes {{ inventory_hostname }} \
+      -o jsonpath='{.metadata.annotations}' \
+      --overwrite \
+      longhorn.io/node={{ longhorn_mounts | join(',') }}
+  vars:
+    longhorn_mounts: "{{ ['storage' + (index|string) + ':/mnt/longhorn-bricks/brick' + (index|string) for index in range(1, number_of_volumes + 1)] }}"
+  when: rke2_type == "agent"

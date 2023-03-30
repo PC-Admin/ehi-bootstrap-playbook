@@ -1,3 +1,8 @@
+---
+
+# Setup Longhorn
+- import_tasks: "{{ role_path }}/tasks/longhorn_setup.yml"
+  tags: [ 'never', 'rancher-setup' ]
 
 # Rancher Setup
 - import_tasks: "{{ role_path }}/tasks/rancher_setup.yml"
