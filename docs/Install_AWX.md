@@ -9,7 +9,7 @@ How to install this clustered AWX setup.
 Provision at least 3 Ubuntu 22.04 servers with >=32GB RAM and with swap disabled, then setup SSH access to each servers root account, these will be our Rancher/AWX servers.
 
 Alternatively you can provision these servers and configure the DNS automatically using Proxmox and Cloudflare (for the DNS) by:
-1) Save a VM template on Proxmox for an Ubuntu 22.04 with enough CPU/RAM and disk space. Ensure the SSH key in (/group_vrs/all.yml)[/group_vrs/all.yml] can be used to connect to the root account of this machine. Also ensure the 'dhcp-identifier' line is added to the following file:
+1) Save a VM template on Proxmox for an Ubuntu 22.04 with enough CPU/RAM and disk space. Ensure the SSH key in [/group_vars/all.yml](/group_vars/all.yml) can be used to connect to the root account of this machine. Also ensure the 'dhcp-identifier' line is added to the following file:
 ```
 root@ubuntu:~# cat /etc/netplan/00-installer-config.yaml
 # This is the network config written by 'subiquity'
@@ -50,78 +50,7 @@ After your finished you can delete these servers/records with the 'teardown' tag
 
 ## Configure HAProxy
 
-First add a backend and frontend definition to the /etc/haproxy/haproxy.cfg file:
-
-```
-global
-    log /dev/log local0 debug
-    log /dev/log local1 notice
-    chroot /var/lib/haproxy
-    stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
-    stats timeout 30s
-    user haproxy
-    group haproxy
-    daemon
-
-defaults
-    log global
-    mode tcp
-    option tcplog
-    option log-separate-errors
-    option log-health-checks
-    retries 3
-    timeout connect 5000
-    timeout client 50000
-    timeout server 50000
-
-frontend tcp_frontend
-    bind *:9345
-    mode tcp
-    option tcplog
-    log global
-    default_backend rke2_cluster
-
-frontend http_frontend
-    bind *:80
-    mode http
-    log global
-    use_backend http_backend
-
-frontend https_frontend
-    bind *:443
-    mode tcp
-    option tcplog
-    option logasap
-    log global
-    tcp-request inspect-delay 5s
-    tcp-request content accept if { req_ssl_hello_type 1 }
-    use_backend https_backend
-
-backend rke2_cluster
-    balance roundrobin
-    option tcp-check
-    tcp-check connect port 9345
-    timeout check 5000
-    server awx1 awx1.perthchat2.org:9345 check
-
-backend http_backend
-    mode http
-    balance roundrobin
-    option httpchk GET /healthz HTTP/1.1\r\nHost:\ ingress.perthchat2.org
-    http-check expect status 200
-    timeout check 5000
-    log global
-    server awx4 awx4.perthchat2.org:80 check
-    server awx5 awx5.perthchat2.org:80 check
-
-backend https_backend
-    mode tcp
-    balance roundrobin
-    option ssl-hello-chk
-    log global
-    server awx4 awx4.perthchat2.org:443 check
-    server awx5 awx5.perthchat2.org:443 check
-```
+First add new backend and frontend definitions to the /etc/haproxy/haproxy.cfg file on each haproxy host, you can see [an example of a haproxyconfig file in the docs](/docs/haproxy_example.cfg).
 
 Then reset the haproxy service:
 `$ sudo systemctl restart haproxy.service`
