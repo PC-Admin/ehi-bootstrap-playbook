@@ -1,0 +1,20 @@
+---
+
+- name: Reload haproxy
+  delegate_to: "{{ item }}"
+  become: true
+  systemd:
+    name: haproxy
+    state: reloaded
+  with_items: "{{ haproxy_nodes }}"
+  run_once: true
+
+#- name: Configure haproxy
+#  delegate_to: "{{ item }}"
+#  become: true
+#  ansible.builtin.template:
+#    src: "{{ role_path  }}/templates/haproxy.cfg.j2"
+#    dest: /etc/haproxy/haproxy.cfg
+#    notify: Reload haproxy
+#  with_items: "{{ haproxy_nodes }}"
+

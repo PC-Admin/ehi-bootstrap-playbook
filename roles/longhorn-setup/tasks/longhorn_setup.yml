@@ -103,13 +103,24 @@
   run_once: True
   when: "'longhorn' not in longhorn_helm_check.stdout"
 
+- name: Check if partitions exist on extra disks
+  ansible.builtin.command: "parted -s /dev/vd{{ item | int | to_letter }} print"
+  register: partition_status
+  loop: "{{ range(2, (number_of_volumes | int) + 2) | list }}"
+  failed_when: false
+  when: rke2_type == "agent"
+  changed_when: false
+  check_mode: no
+
 - name: Create partitions on extra disks
   ansible.builtin.parted:
-    device: "/dev/vd{{ item | int | to_letter }}"
+    device: "/dev/vd{{ item.item | int | to_letter }}"
     number: 1
     state: present
-  loop: "{{ range(2, (number_of_volumes | int) + 2) | list }}"
-  when: rke2_type == "agent"
+  loop: "{{ partition_status.results }}"
+  when:
+    - rke2_type == "agent"
+    - "'Error: No partition table found on device' in item.stdout"
 
 - name: Create mount directories
   ansible.builtin.file:
@@ -128,6 +139,13 @@
   delay: 6
   retries: 10
 
+- name: Format XFS partitions
+  ansible.builtin.filesystem:
+    dev: "/dev/vd{{ (item + 1) | to_letter }}"
+    fstype: xfs
+  loop: "{{ range(1, (number_of_volumes | int) + 1) | list }}"
+  when: rke2_type == "agent"
+
 - name: Mount xfs partitions
   ansible.builtin.mount:
     path: "/mnt/longhorn-bricks/brick{{ item }}"
@@ -137,13 +155,24 @@
   loop: "{{ range(1, (number_of_volumes | int) + 1) | list }}"
   when: rke2_type == "agent"
 
+- name: Set longhorn_mounts variable
+  set_fact:
+    longhorn_mounts: "{{ range(1, (number_of_volumes | int) + 1) | list | map('regex_replace', '^(.*)$', 'storage\\1:/mnt/longhorn-bricks/brick\\1') | join(',') }}"
+  when: rke2_type == "agent"
 
 - name: Configure Longhorn storage
+  delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.shell: |
-    kubectl -n longhorn-system annotate nodes {{ inventory_hostname }} \
+    /var/lib/rancher/rke2/bin/kubectl -n longhorn-system annotate nodes {{ inventory_hostname }} \
       -o jsonpath='{.metadata.annotations}' \
       --overwrite \
-      longhorn.io/node={{ longhorn_mounts | join(',') }}
-  vars:
-    longhorn_mounts: "{{ ['storage' + (index|string) + ':/mnt/longhorn-bricks/brick' + (index|string) for index in range(1, number_of_volumes + 1)] }}"
+      longhorn.io/node={{ longhorn_mounts | join('') }}
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  when: rke2_type == "agent"
+  register: longhorn_storage_config
+
+- name: DEBUG - Longhorn storage configuration
+  ansible.builtin.debug:
+    msg: "{{ longhorn_storage_config.stdout_lines }}"
   when: rke2_type == "agent"

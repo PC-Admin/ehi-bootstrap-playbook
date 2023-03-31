@@ -1,8 +1,19 @@
 ---
 
-- name: Gather facts from each host
-  setup: # This module gathers facts
-  tags: [ 'never', 'rke2-setup' ]
+- block:
+    - name: Gather facts from each host
+      setup:
+      tags: [ 'never', 'rke2-setup' ]
+
+  rescue:
+    - name: Report failure
+      debug:
+        msg: "Gather facts failed on {{ inventory_hostname }}. Exiting the playbook."
+      tags: [ 'never', 'rke2-setup' ]
+
+    - name: Stop the playbook on fact gathering failure
+      meta: end_play
+      tags: [ 'never', 'rke2-setup' ]
 
 - name: Create a dynamic group for controlplane nodes
   group_by:

@@ -1,3 +1,5 @@
+# HAProxy Variables
+haproxy_nodes: [ 'haproxy01', 'haproxy02', 'haproxy03' ] 
 # RKE2 / AWX Variables
 awx_base_domain: example.org
 rke2_load_balancer: leader.example.org

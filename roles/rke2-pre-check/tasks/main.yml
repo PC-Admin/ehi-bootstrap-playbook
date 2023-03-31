@@ -7,3 +7,7 @@
 # Setup the RKE2 server nodes for RKE2 deployment
 - import_tasks: "{{ role_path }}/tasks/setup_server.yml"
   tags: [ 'never', 'setup-rke2' ]
+
+# Configured the HAProxy nodes
+- import_tasks: "{{ role_path }}/tasks/haproxy_configure.yml"
+  tags: [ 'never', 'setup-rke2' ]

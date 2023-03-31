@@ -7,11 +7,7 @@
 - import_tasks: "{{ role_path }}/tasks/proxmox_storage_create.yml"
   tags: [ 'never', 'provision' ]
 
-# Delete block storage for Proxmox VMs
-- import_tasks: "{{ role_path }}/tasks/proxmox_storage_delete.yml"
-  tags: [ 'never', 'teardown' ]
-
-# Delete Proxmox VMs
+# Delete Proxmox VMs and Block Storage
 - import_tasks: "{{ role_path }}/tasks/proxmox_vm_delete.yml"
   tags: [ 'never', 'teardown' ]
 

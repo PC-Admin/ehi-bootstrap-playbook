@@ -11,9 +11,6 @@
 
 ## Create a namespace for Cert-Manager:
 
-#root@awx1:~# /var/lib/rancher/rke2/bin/kubectl create namespace cert-manager --kubeconfig /etc/rancher/rke2/rke2.yaml
-#namespace/cert-manager created
-
 - name: Check if the Cert-Manager namespace exists
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get namespace cert-manager
@@ -33,9 +30,6 @@
 
 ## Add the Jetstack Helm repository:
 
-#root@awx1:~# helm repo add jetstack https://charts.jetstack.io
-#"jetstack" has been added to your repositories
-
 - name: Add the Jetstack Helm repository
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: helm repo add jetstack https://charts.jetstack.io
@@ -44,9 +38,6 @@
   run_once: True
 
 ## Deploy Cert-Manager using Helm:
-
-#root@awx1:~# export KUBECONFIG=/etc/rancher/rke2/rke2.yaml
-#root@awx1:~# helm install   cert-manager jetstack/cert-manager   --namespace cert-manager   --version v1.6.1   --create-namespace
 
 - name: Check if Cert-Manager is already installed
   delegate_to: "{{ rke2_bootstrap_node }}"
@@ -65,15 +56,6 @@
   run_once: True
   when: "'cert-manager' not in cert_manager_helm_check.stdout"
 
-
-## Verify the Cert-Manager installation:
-
-#root@awx1:~# /var/lib/rancher/rke2/bin/kubectl get pods --namespace cert-manager
-#NAME                                       READY   STATUS    RESTARTS   AGE
-#cert-manager-784c485689-hl26z              1/1     Running   0          106s
-#cert-manager-cainjector-847948b45b-p24zq   1/1     Running   0          106s
-#cert-manager-webhook-78f7d46f8c-bl2ks      1/1     Running   0          106s
-
 - name: Verify the Cert-Manager installation
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get pods --namespace cert-manager
@@ -89,22 +71,14 @@
 
 ## Install Rancher
 
-## Add the Rancher Helm repository:
-
-#root@awx1:~# helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
-#"rancher-latest" has been added to your repositories
-
 - name: Add the Rancher Helm repository
   delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
+  ansible.builtin.command: helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
   environment:
     KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   run_once: True
 
 ## Create a namespace for Rancher:
-
-#root@awx1:~# /var/lib/rancher/rke2/bin/kubectl create namespace cattle-system
-#namespace/cattle-system created
 
 - name: Check if the Rancher namespace exists
   delegate_to: "{{ rke2_bootstrap_node }}"
@@ -123,9 +97,84 @@
   run_once: True
   when: "rancher_namespace_check.rc != 0 and 'not found' in rancher_namespace_check.stderr"
 
-## Install Rancher using Helm with a self-signed certificate:
+# also need to ensure "cattle-fleet-system" and "cattle-global-data" namespaces exist
 
-# root@awx1:~# helm install rancher rancher-latest/rancher --namespace cattle-system --set hostname=rancher.perthchat2.org --set ingress.tls.source=secret --create-namespace
+- name: Check if the cattle-fleet-system namespace exists
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get namespace cattle-fleet-system
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+  register: cattle_fleet_system_namespace_check
+  ignore_errors: True
+
+- name: Create a namespace for cattle-fleet-system
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl create namespace cattle-fleet-system
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+  when: "cattle_fleet_system_namespace_check.rc != 0 and 'not found' in cattle_fleet_system_namespace_check.stderr"
+
+- name: Check if the cattle-global-data namespace exists
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get namespace cattle-global-data
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+  register: cattle_global_data_namespace_check
+  ignore_errors: True
+
+- name: Create a namespace for cattle-global-data
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl create namespace cattle-global-data
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+  when: "cattle_global_data_namespace_check.rc != 0 and 'not found' in cattle_global_data_namespace_check.stderr"
+
+## Install Perisistent Volume Claim for Rancher
+
+- name: Add prerequisite python3-pip package to Bootstrap node
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.package:
+    pkg:
+      - python3-pip
+  register: package_status
+  until: package_status is success
+  run_once: True
+  delay: 6
+  retries: 10
+
+- name: Install the required Kubernetes library
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.pip:
+    name: kubernetes
+    state: present
+  run_once: True
+
+- name: Create PersistentVolumeClaim for Rancher
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.k8s:
+    state: present
+    namespace: cattle-system
+    definition:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: rancher-pvc
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: "{{ volume_size }}Gi" # Adjust the size as needed
+        storageClassName: longhorn-rancher # Make sure this matches your Longhorn StorageClass name
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+
+## Install Rancher using Helm with a self-signed certificate:
 
 - name: Check if Rancher is already installed
   delegate_to: "{{ rke2_bootstrap_node }}"
@@ -136,17 +185,25 @@
   run_once: True
   ignore_errors: True
 
-- name: Install Rancher using Helm with a self-signed certificate
+- name: Install Rancher using Helm with a self-signed certificate (Stable Branch)
   delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: helm install rancher rancher-latest/rancher --namespace cattle-system --set hostname=rancher.perthchat2.org --set ingress.tls.source=secret --create-namespace
+  ansible.builtin.command: >-
+    helm install rancher rancher-stable/rancher
+    --namespace cattle-system
+    --set hostname=rancher.perthchat2.org
+    --set ingress.tls.source=rancher
+    --set persistence.enabled=true
+    --set persistence.storageClass=longhorn-rancher
+    --set persistence.size={{ volume_size }}Gi
+    --set persistence.existingClaim=rancher-pvc
+    --set bootstrapPassword={{ rancher_admin_password }}
+    --create-namespace
   environment:
     KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   run_once: True
   when: "'rancher' not in rancher_helm_check.stdout"
 
 ## Verify the Rancher installation:
-
-#kubectl get pods --namespace cattle-system
 
 - name: Verify the Rancher installation
   delegate_to: "{{ rke2_bootstrap_node }}"
@@ -159,15 +216,4 @@
 - name: Display Rancher output
   ansible.builtin.debug:
     msg: "{{ rancher_status.stdout_lines }}"
-  run_once: True
-
-# Set the admin password for Rancher
-
-#/var/lib/rancher/rke2/bin/kubectl get secret --namespace cattle-system bootstrap-secret -o go-template='{{.data.bootstrapPassword|base64decode}}{{ "\n" }}'
-
-- name: Set the admin password for Rancher
-  delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get secret --namespace cattle-system bootstrap-secret -o go-template='{{ rancher_admin_password }}{{ "\n" }}'
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   run_once: True

@@ -41,24 +41,26 @@
     state: present
   when: ansible_system == 'Linux'
 
-- name: Check known_hosts for {{ inventory_hostname }}
-  local_action: shell ssh-keygen -F {{ inventory_hostname }}
-  register: has_entry_in_known_hosts_file
-  changed_when: false
-  ignore_errors: true
+#- name: Check known_hosts for {{ inventory_hostname }}
+#  local_action: shell ssh-keygen -F {{ inventory_hostname }}
+#  register: has_entry_in_known_hosts_file
+#  changed_when: false
+#  ignore_errors: true
 
-- name: Ignore host key for {{ inventory_hostname }} on first run
-  set_fact:
-    ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
-  when: has_entry_in_known_hosts_file.rc == 1
-
-- name: Wait for SSH connection to become available, with 5 seconds between checks, for a minute
-  wait_for_connection:
-    sleep: 5
-    timeout: 60
-  register: ssh_connection_result
-  until: ssh_connection_result is success
-
-- name: Pause for 3 minutes to let CloudFlares DNS propagate
+- name: Pause for a 3 minutes to let VMs warm up and CloudFlare DNS propagate
   ansible.builtin.pause:
-    minutes: 3
+    seconds: 180
+
+# this shit is jank and doesn't work :P
+
+#- name: Ignore host key for {{ inventory_hostname }} on SSH connection
+#  set_fact:
+#    ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+#  when: has_entry_in_known_hosts_file.rc == 1
+
+#- name: Wait for SSH connection to become available, with 5 seconds between checks, for a maximum of 30 seconds
+#  wait_for_connection:
+#    sleep: 5
+#    timeout: 30
+#  register: ssh_connection_result
+#  until: ssh_connection_result is success

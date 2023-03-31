@@ -10,6 +10,7 @@
     - role: lablabs.rke2
       tags: rke2-setup
     - rke2-test
+    - longhorn-setup
     - rancher-setup
     #- rke2-setup
     #- awx-install
