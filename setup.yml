@@ -12,6 +12,7 @@
     - rke2-test
     - longhorn-setup
     - rancher-setup
+    - awx-setup
     #- rke2-setup
     #- awx-install
     #- awx-custom-config

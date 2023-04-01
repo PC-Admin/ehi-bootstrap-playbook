@@ -1,0 +1,101 @@
+---
+
+- name: Create /root/cert-manager directory
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.file:
+    path: /root/cert-manager
+    state: directory
+    mode: 0755
+  run_once: True
+
+- name: Template the issuer.yaml for Cert-Manager
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/issuer.yaml.j2"
+    dest: /root/cert-manager/issuer.yaml
+    mode: 0644
+  run_once: True
+
+# kubectl apply -f issuer.yaml.
+
+- name: Deploy the Cert-Manager issuer
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl apply -f /root/cert-manager/issuer.yaml
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+
+# kubectl apply -f cloudflare.yaml --namespace=cert-manager.
+
+- name: Template the cloudflare.yaml for Cert-Manager
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/cloudflare.yaml.j2"
+    dest: /root/cert-manager/cloudflare.yaml
+    mode: 0644
+  run_once: True
+
+- name: Deploy the Cloudflare manifest
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl apply -f /root/cert-manager/cloudflare.yaml --namespace=cert-manager
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+
+# Once you've got your manifest created, apply it with kubectl apply -f certificate.yam
+
+- name: Template the certificate.yaml for Cert-Manager
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/certificate.yaml.j2"
+    dest: /root/cert-manager/certificate.yaml
+    mode: 0644
+  run_once: True
+
+- name: Create 'awx' namespace for AWX
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl create namespace awx
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+  ignore_errors: True
+
+- name: Deploy the Cert-Manager certificate
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl apply -f /root/cert-manager/certificate.yaml
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+
+
+# You can run kubectl get certificates to see your certificate request, and kubectl describe certificates to see what state it's in.
+
+# wings:homelab-dns/ $ kubectl get certificates
+
+- name: Examine the state of the Cert-Manager certificate
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get certificates --namespace=awx
+  register: certificate_state
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+
+- name: DEBUG print certificate_state
+  ansible.builtin.debug:
+    msg: "{{ certificate_state.stdout_lines }}"
+  run_once: True
+
+# kubectl describe challenges
+
+- name: Examine the state of the Cert-Manager challenges
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl describe challenges --namespace=awx
+  register: challenge_state
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+
+- name: DEBUG print challenge_state
+  ansible.builtin.debug:
+    msg: "{{ challenge_state.stdout_lines }}"
+  run_once: True

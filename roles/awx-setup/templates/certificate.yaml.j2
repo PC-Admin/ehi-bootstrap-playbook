@@ -1,0 +1,14 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: tls-awx-ingress
+  namespace: awx
+spec:
+  secretName: tls-awx-ingress
+  commonName: awx.{{ awx_base_domain }}
+  dnsNames:
+  - awx.{{ awx_base_domain }}
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer

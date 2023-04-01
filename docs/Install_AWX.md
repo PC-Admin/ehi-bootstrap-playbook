@@ -6,7 +6,7 @@ How to install this clustered AWX setup.
 
 ## Provision the Servers
 
-Provision at least 3 Ubuntu 22.04 servers with >=32GB RAM and with swap disabled, then setup SSH access to each servers root account, these will be our Rancher/AWX servers.
+Provision at least 3 Ubuntu 22.04 servers with >=32GB RAM, swap disabled and at least 64GB of disk space in the root partition, then setup SSH access to each servers root account, these will be our RKE2/AWX servers.
 
 Alternatively you can provision these servers and configure the DNS automatically using Proxmox and Cloudflare (for the DNS) by:
 1) Save a VM template on Proxmox for an Ubuntu 22.04 with enough CPU/RAM and disk space. Ensure the SSH key in [/group_vars/all.yml](/group_vars/all.yml) can be used to connect to the root account of this machine. Also ensure the 'dhcp-identifier' line is added to the following file:
@@ -78,4 +78,4 @@ Record each hosts variables into each hosts ./inventory/host_vars/awx1.example.o
 
 3) Run the playbook with the following tags:
 
-`$ ansible-playbook -v -i ./inventory/hosts -t "rke2-setup,rancher-setup" setup.yml`
+`$ ansible-playbook -v -i ./inventory/hosts -t "rke2-setup,rancher-setup,awx-setup" setup.yml`

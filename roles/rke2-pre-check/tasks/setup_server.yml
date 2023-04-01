@@ -39,10 +39,25 @@
     - gnupg2
     - apt-listchanges
     - git
+    - etckeeper
+    - prometheus
+    - prometheus-node-exporter
   register: package_status
   until: package_status is success
   delay: 6
   retries: 10
+
+- name: Make sure Prometheus unit is running and enabled on AWX Server
+  ansible.builtin.systemd:
+    state: started
+    name: prometheus
+    enabled: yes
+
+- name: Make sure Prometheus Node Exporter unit is running and enabled on AWX Server
+  ansible.builtin.systemd:
+    state: started
+    name: prometheus-node-exporter
+    enabled: yes
 
 - name: Ensure /etc/rke2/ directory exists on RKE2 server nodes
   file:

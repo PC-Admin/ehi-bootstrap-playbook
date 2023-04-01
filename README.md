@@ -32,3 +32,5 @@ This playbook is copyrighted by Michael Collins under the [MIT License](licenses
 The AWX source code is copyrighted to Red Hat Inc, and is made available under the [Apache License 2.0](https://github.com/ansible/awx/blob/devel/LICENSE.md).
 
 Rancher is Kubernetes management tool, it is copyrighted to Rancher Labs and is made available under the [Apache License 2.0](https://github.com/rancher/rancher/blob/release/v2.7/LICENSE).
+
+The ansible-role-rke2 role is an Ansible Role that installs RKE2 Kubernetes, it is copyrighted to Labyrinth Labs and is made available under the [MIT License](https://github.com/lablabs/ansible-role-rke2/blob/main/LICENSE).

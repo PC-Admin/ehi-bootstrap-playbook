@@ -1,74 +1,5 @@
 ---
 
-## Install cert-manager (from bootstrap node)
-
-- name: Install cert-manager (from bootstrap node)
-  delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.6.1/cert-manager.crds.yaml
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
-  run_once: True
-
-## Create a namespace for Cert-Manager:
-
-- name: Check if the Cert-Manager namespace exists
-  delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get namespace cert-manager
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
-  run_once: True
-  register: cert_manager_namespace_check
-  ignore_errors: True
-
-- name: Create a namespace for Cert-Manager
-  delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl create namespace cert-manager
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
-  run_once: True
-  when: "cert_manager_namespace_check.rc != 0 and 'not found' in cert_manager_namespace_check.stderr"
-
-## Add the Jetstack Helm repository:
-
-- name: Add the Jetstack Helm repository
-  delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: helm repo add jetstack https://charts.jetstack.io
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
-  run_once: True
-
-## Deploy Cert-Manager using Helm:
-
-- name: Check if Cert-Manager is already installed
-  delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: helm list --namespace cert-manager --filter "^cert-manager$"
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
-  register: cert_manager_helm_check
-  run_once: True
-  ignore_errors: True
-
-- name: Deploy Cert-Manager using Helm
-  delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.6.1 --create-namespace
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
-  run_once: True
-  when: "'cert-manager' not in cert_manager_helm_check.stdout"
-
-- name: Verify the Cert-Manager installation
-  delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get pods --namespace cert-manager
-  register: cert_manager_status
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
-  run_once: True
-
-- name: Display Cert-Manager status output
-  ansible.builtin.debug:
-    msg: "{{ cert_manager_status.stdout_lines }}"
-  run_once: True
-
 ## Install Rancher
 
 - name: Add the Rancher Helm repository
@@ -153,6 +84,49 @@
     state: present
   run_once: True
 
+- name: Create a StorageClass for Rancher
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.k8s:
+    state: present
+    namespace: cattle-system
+    definition:
+      apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        name: longhorn-rancher
+      provisioner: driver.longhorn.io
+      parameters:
+        numberOfReplicas: "3"
+        staleReplicaTimeout: "2880"
+        fromBackup: "" # is this an avenue for a backup?
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+
+- name: Create a PersistentVolume for Rancher
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.k8s:
+    state: present
+    namespace: cattle-system
+    definition:
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: rancher-pv
+      spec:
+        capacity:
+          storage: "{{ volume_size }}Gi" # Adjust the size as needed
+        accessModes:
+          - ReadWriteOnce
+        persistentVolumeReclaimPolicy: Delete
+        storageClassName: longhorn-rancher # Make sure this matches your Longhorn StorageClass name
+        csi:
+          driver: driver.longhorn.io
+          volumeHandle: rancher-pv # Unique identifier for the volume, make sure this matches the PV name
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+
 - name: Create PersistentVolumeClaim for Rancher
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.k8s:
@@ -170,6 +144,7 @@
           requests:
             storage: "{{ volume_size }}Gi" # Adjust the size as needed
         storageClassName: longhorn-rancher # Make sure this matches your Longhorn StorageClass name
+        volumeName: rancher-pv # Specify the name of the PersistentVolume to use
   environment:
     KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   run_once: True
@@ -205,6 +180,19 @@
 
 ## Verify the Rancher installation:
 
+#- name: Verify the Rancher installation
+#  delegate_to: "{{ rke2_bootstrap_node }}"
+#  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get pods --namespace cattle-system
+#  register: rancher_status
+#  environment:
+#    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+#  run_once: True
+
+#- name: Display Rancher output
+#  ansible.builtin.debug:
+#    msg: "{{ rancher_status.stdout_lines }}"
+#  run_once: True
+
 - name: Verify the Rancher installation
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get pods --namespace cattle-system
@@ -212,8 +200,12 @@
   environment:
     KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   run_once: True
+  retries: 60  # Adjust the number of retries as needed
+  delay: 10  # Adjust the delay between retries as needed
+  until: rancher_status.stdout | regex_findall('Running') | length >= 4
 
 - name: Display Rancher output
   ansible.builtin.debug:
     msg: "{{ rancher_status.stdout_lines }}"
   run_once: True
+

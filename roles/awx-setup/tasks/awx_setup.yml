@@ -1,0 +1,97 @@
+---
+
+- name: Ensure /root/awx-operator directory exists
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.file:
+    path: /root/awx-operator
+    state: directory
+    mode: 0755
+  run_once: True
+
+# Install Kustomize!
+
+# wget -O kustomize.tar.gz https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F{{ kustomize_version }}/kustomize_{{ kustomize_version }}_linux_amd64.tar.gz
+
+- name: Download Kustomize binary
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.get_url: 
+    url: https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F{{ kustomize_version }}/kustomize_{{ kustomize_version }}_linux_amd64.tar.gz
+    dest: /root/awx-operator/kustomize.tar.gz
+
+#    Extract the downloaded archive:
+
+- name: Extract Kustomize binary
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.unarchive:
+    src: /root/awx-operator/kustomize.tar.gz
+    dest: /var/lib/rancher/rke2/bin
+    remote_src: yes
+    owner: root
+    group: root
+    mode: 755
+  run_once: True
+
+#    Apply the manifest with kustomize build . | kubectl apply -f -
+#    After a bit of waiting, you should see some AWX Operator pods happily running.
+
+- name: Template the kustomize manifest
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/kustomization.yaml.j2"
+    dest: /root/awx-operator/kustomization.yaml
+    mode: 0644
+  run_once: True
+
+- name: Apply the kustomize manifest
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.shell: |
+    /var/lib/rancher/rke2/bin/kustomize build /root/awx-operator | /var/lib/rancher/rke2/bin/kubectl apply -f -
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+
+#wings:homelab-dns/ $ kubectl get pods -n awx
+#NAME                                               READY   STATUS    RESTARTS        AGE
+#awx-operator-controller-manager-57d56b64db-kfcjf   2/2     Running   0               3m
+
+#You've just installed AWX Operator. Crack open a beer or put on a coffee, you've earned it.
+
+- name: Examine the AWX pods
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get pods -n awx
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+
+# And apply it with kubectl apply -f awx.yaml.
+
+- name: Template the AWX manifest
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/awx.yaml.j2"
+    dest: /root/awx-operator/awx.yaml
+    mode: 0644
+  run_once: True
+
+- name: Apply the AWX manifest
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: |
+    /var/lib/rancher/rke2/bin/kubectl apply -f /root/awx-operator/awx.yaml
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+
+- name: Check if AWX/Automation Controller is deployed (max 15min)
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: |
+    /var/lib/rancher/rke2/bin/kubectl -n awx logs --tail=10 deployments/awx-operator-controller-manager -c awx-manager
+  register: result
+  until: result.stdout.find("failed=0") != -1
+  failed_when: result.stdout.find("failed=1") != -1
+  run_once: True
+  retries: 25
+  delay: 30
+
+- name: Deploy the required AWX/Automation Controller Operator objects in the awx namespace.
+  ansible.builtin.command: |
+      kubectl -n awx get awx,all,ingress,secrets

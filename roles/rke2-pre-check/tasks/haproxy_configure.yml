@@ -8,6 +8,7 @@
     state: reloaded
   with_items: "{{ haproxy_nodes }}"
   run_once: true
+  tags: [ 'never', 'rke2-setup' ]
 
 #- name: Configure haproxy
 #  delegate_to: "{{ item }}"

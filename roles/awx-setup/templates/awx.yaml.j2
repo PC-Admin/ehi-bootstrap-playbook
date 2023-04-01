@@ -1,0 +1,11 @@
+---
+apiVersion: awx.ansible.com/v1beta1
+kind: AWX
+metadata:
+  name: awx
+spec:
+  service_type: nodeport
+  ingress_type: ingress
+  hostname: awx.{{ awx_base_domain }}
+  ingress_path: /
+  ingress_tls_secret: tls-awx-ingress

@@ -176,3 +176,19 @@
   ansible.builtin.debug:
     msg: "{{ longhorn_storage_config.stdout_lines }}"
   when: rke2_type == "agent"
+
+# kubectl -n longhorn-system get nodes awx4.perthchat2.org awx5.perthchat2.org -o jsonpath='{.items[*].metadata.annotations.longhorn\.io/node}'
+
+- name: Examine the Longhorn_mounts
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.shell: |
+    /var/lib/rancher/rke2/bin/kubectl -n longhorn-system get nodes {{ inventory_hostname }} -o jsonpath='{.items[*].metadata.annotations.longhorn\.io/node}'
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  when: rke2_type == "agent"
+  register: longhorn_mounts_check
+
+- name: DEBUG - Longhorn mounts
+  ansible.builtin.debug:
+    msg: "{{ longhorn_mounts_check.stdout_lines }}"
+  when: rke2_type == "agent"

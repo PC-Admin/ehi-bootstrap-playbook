@@ -1,5 +1,9 @@
 ---
 
+# Cert-Manager Setup
+- import_tasks: "{{ role_path }}/tasks/cert-manager_setup.yml"
+  tags: [ 'never', 'rancher-setup', 'awx-setup' ]
+
 # Rancher Setup
 - import_tasks: "{{ role_path }}/tasks/rancher_setup.yml"
   tags: [ 'never', 'rancher-setup' ]
