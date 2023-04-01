@@ -88,6 +88,8 @@
   register: result
   until: result.stdout.find("failed=0") != -1
   failed_when: result.stdout.find("failed=1") != -1
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   run_once: True
   retries: 25
   delay: 30

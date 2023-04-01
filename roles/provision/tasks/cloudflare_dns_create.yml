@@ -53,3 +53,16 @@
     state: present
   when: ( rke2_api_ip | length > 0 )
   run_once: True
+
+- name: Create an A record for AWX
+  delegate_to: 127.0.0.1
+  community.general.cloudflare_dns:
+    zone: '{{ awx_base_domain }}'
+    record: "awx"
+    type: A
+    value: '{{ rke2_api_ip }}'
+    account_email: '{{ cloudflare_email }}'
+    account_api_token: '{{ cloudflare_api_token }}'
+    state: present
+  when: ( rke2_api_ip | length > 0 )
+  run_once: True
