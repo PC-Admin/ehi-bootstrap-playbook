@@ -1,19 +1,61 @@
 ---
 
-- block:
-    - name: Gather facts from each host
-      setup:
-      tags: [ 'never', 'rke2-setup' ]
+- name: Attempt to gather facts from each host
+  setup:
+    gather_timeout: 30
+  ignore_unreachable: True
+  register: gather_facts_results
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+  tags: [ 'never', 'rke2-setup' ]
 
-  rescue:
-    - name: Report failure
-      debug:
-        msg: "Gather facts failed on {{ inventory_hostname }}. Exiting the playbook."
-      tags: [ 'never', 'rke2-setup' ]
+#- name: DEBUG print gather_facts_results type
+#  debug:
+#    msg: "gather_facts_results type: {{ gather_facts_results | type_debug }}"
+#  tags: [ 'never', 'rke2-setup' ]
 
-    - name: Stop the playbook on fact gathering failure
-      meta: end_play
-      tags: [ 'never', 'rke2-setup' ]
+#- name: DEBUG print gather_facts_results content
+#  debug:
+#    var: gather_facts_results
+#  tags: [ 'never', 'rke2-setup' ]
+
+#- name: DEBUG print gather_facts_results | list
+#  debug:
+#    msg: "gather_facts_results: {{ gather_facts_results | list }}"
+#  tags: [ 'never', 'rke2-setup' ]
+
+- name: Set unreachable flag if the host is unreachable
+  set_fact:
+    host_unreachable: "{{ gather_facts_results.unreachable | default(false) }}"
+  tags: [ 'never', 'rke2-setup' ]
+
+#- name: DEBUG print host_unreachable
+#  debug:
+#    var: host_unreachable
+#  tags: [ 'never', 'rke2-setup' ]
+
+- name: Group hosts based on reachability
+  group_by:
+    key: "{{ 'unreachable_hosts' if host_unreachable | bool else 'reachable_hosts' }}"
+  tags: [ 'never', 'rke2-setup' ]
+
+#- name: DEBUG print groups
+#  debug:
+#    var: groups
+#  run_once: True
+#  tags: [ 'never', 'rke2-setup' ]
+
+- name: Print a warning if an unreachable host is detected
+  debug:
+    msg: "WARNING: The hosts {{ groups['unreachable_hosts'] }} are unreachable. You likely need to re-run this playbook with the 'provision' tag."
+  when: "'unreachable_hosts' in groups and groups['unreachable_hosts'] | length > 0"
+  run_once: True
+  tags: [ 'never', 'rke2-setup' ]
+
+- name: Stop the playbook if an unreachable host is detected
+  meta: end_play
+  when: "'unreachable_hosts' in groups and groups['unreachable_hosts'] | length > 0"
+  tags: [ 'never', 'rke2-setup' ]
 
 - name: Create a dynamic group for controlplane nodes
   group_by:
