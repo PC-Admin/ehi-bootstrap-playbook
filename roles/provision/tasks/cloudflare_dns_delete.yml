@@ -9,7 +9,8 @@
     account_email: '{{ cloudflare_email }}'
     account_api_token: '{{ cloudflare_api_token }}'
     state: absent
-  with_items: "{{ awx_subdomain }}"
+    #proxy: false
+  with_items: "{{ rke2_subdomain }}"
   ignore_errors: true
   register: record_ipv4
 
@@ -43,9 +44,10 @@
   delegate_to: 127.0.0.1
   community.general.cloudflare_dns:
     zone: '{{ awx_base_domain }}'
-    record: "awx"
+    record: "{{ awx_subdomain }}"
     type: A
     account_email: '{{ cloudflare_email }}'
     account_api_token: '{{ cloudflare_api_token }}'
     state: absent
   when: ( rke2_api_ip | length > 0 )
+  run_once: True

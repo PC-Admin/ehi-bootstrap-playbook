@@ -11,3 +11,7 @@
 # Configured the HAProxy nodes
 - import_tasks: "{{ role_path }}/tasks/haproxy_configure.yml"
   tags: [ 'never', 'setup-rke2' ]
+
+# Setup K9s on host, a popular kubernetes inspection tool
+- import_tasks: "{{ role_path }}/tasks/k9s_setup.yml"
+  tags: [ 'never', 'setup-rke2' ]

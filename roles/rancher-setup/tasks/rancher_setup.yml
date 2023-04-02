@@ -5,26 +5,20 @@
 - name: Add the Rancher Helm repository
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   run_once: True
 
 ## Create a namespace for Rancher:
 
 - name: Check if the Rancher namespace exists
   delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get namespace cattle-system
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  ansible.builtin.command: kubectl get namespace cattle-system
   run_once: True
   register: rancher_namespace_check
   ignore_errors: True
 
 - name: Create a namespace for Rancher
   delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl create namespace cattle-system
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  ansible.builtin.command: kubectl create namespace cattle-system
   run_once: True
   when: "rancher_namespace_check.rc != 0 and 'not found' in rancher_namespace_check.stderr"
 
@@ -32,35 +26,27 @@
 
 - name: Check if the cattle-fleet-system namespace exists
   delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get namespace cattle-fleet-system
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  ansible.builtin.command: kubectl get namespace cattle-fleet-system
   run_once: True
   register: cattle_fleet_system_namespace_check
   ignore_errors: True
 
 - name: Create a namespace for cattle-fleet-system
   delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl create namespace cattle-fleet-system
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  ansible.builtin.command: kubectl create namespace cattle-fleet-system
   run_once: True
   when: "cattle_fleet_system_namespace_check.rc != 0 and 'not found' in cattle_fleet_system_namespace_check.stderr"
 
 - name: Check if the cattle-global-data namespace exists
   delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get namespace cattle-global-data
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  ansible.builtin.command: kubectl get namespace cattle-global-data
   run_once: True
   register: cattle_global_data_namespace_check
   ignore_errors: True
 
 - name: Create a namespace for cattle-global-data
   delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl create namespace cattle-global-data
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  ansible.builtin.command: kubectl create namespace cattle-global-data
   run_once: True
   when: "cattle_global_data_namespace_check.rc != 0 and 'not found' in cattle_global_data_namespace_check.stderr"
 
@@ -99,8 +85,6 @@
         numberOfReplicas: "3"
         staleReplicaTimeout: "2880"
         fromBackup: "" # is this an avenue for a backup?
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   run_once: True
 
 - name: Create a PersistentVolume for Rancher
@@ -123,8 +107,6 @@
         csi:
           driver: driver.longhorn.io
           volumeHandle: rancher-pv # Unique identifier for the volume, make sure this matches the PV name
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   run_once: True
 
 - name: Create PersistentVolumeClaim for Rancher
@@ -145,8 +127,6 @@
             storage: "{{ volume_size }}Gi" # Adjust the size as needed
         storageClassName: longhorn-rancher # Make sure this matches your Longhorn StorageClass name
         volumeName: rancher-pv # Specify the name of the PersistentVolume to use
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   run_once: True
 
 ## Install Rancher using Helm with a self-signed certificate:
@@ -154,8 +134,6 @@
 - name: Check if Rancher is already installed
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: helm list --namespace cattle-system --filter "^rancher$"
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   register: rancher_helm_check
   run_once: True
   ignore_errors: True
@@ -182,10 +160,8 @@
 
 #- name: Verify the Rancher installation
 #  delegate_to: "{{ rke2_bootstrap_node }}"
-#  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get pods --namespace cattle-system
+#  ansible.builtin.command: kubectl get pods --namespace cattle-system
 #  register: rancher_status
-#  environment:
-#    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
 #  run_once: True
 
 #- name: Display Rancher output
@@ -195,10 +171,8 @@
 
 - name: Verify the Rancher installation
   delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get pods --namespace cattle-system
+  ansible.builtin.command: kubectl get pods --namespace cattle-system
   register: rancher_status
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   run_once: True
   retries: 60  # Adjust the number of retries as needed
   delay: 10  # Adjust the delay between retries as needed
@@ -208,4 +182,3 @@
   ansible.builtin.debug:
     msg: "{{ rancher_status.stdout_lines }}"
   run_once: True
-

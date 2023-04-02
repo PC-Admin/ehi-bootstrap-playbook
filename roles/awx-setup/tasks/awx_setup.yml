@@ -18,8 +18,6 @@
     url: https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F{{ kustomize_version }}/kustomize_{{ kustomize_version }}_linux_amd64.tar.gz
     dest: /root/awx-operator/kustomize.tar.gz
 
-#    Extract the downloaded archive:
-
 - name: Extract Kustomize binary
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.unarchive:
@@ -45,9 +43,7 @@
 - name: Apply the kustomize manifest
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.shell: |
-    /var/lib/rancher/rke2/bin/kustomize build /root/awx-operator | /var/lib/rancher/rke2/bin/kubectl apply -f -
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+    kustomize build /root/awx-operator | kubectl apply -f -
   run_once: True
 
 #wings:homelab-dns/ $ kubectl get pods -n awx
@@ -58,42 +54,70 @@
 
 - name: Examine the AWX pods
   delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get pods -n awx
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  ansible.builtin.command: |
+    kubectl get pods -n awx
   run_once: True
 
+# root@awx1:~# kubectl get pods -n awx --kubeconfig=/etc/rancher/rke2/rke2.yaml
+# NAME                                               READY   STATUS    RESTARTS   AGE
+# awx-operator-controller-manager-7b79cf89db-kxt26   2/2     Running   0          15m
+
+
 # And apply it with kubectl apply -f awx.yaml.
+
+- name: Template the AWX Operator manifest
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/operator.yaml.j2"
+    dest: /root/awx-operator/operator.yaml
+    mode: 0644
+  run_once: True
+
+- name: Apply the AWX Operator manifest
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: |
+    kubectl apply -f /root/awx-operator/operator.yaml
+  run_once: True
+
+- name: Check if AWX/Automation Controller is deployed (max 3min)
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: |
+    kubectl -n awx logs --tail=10 deployments/awx-operator-controller-manager -c awx-manager
+  register: result
+  until: result.stdout.find("failed=0") != -1
+  failed_when: result.stdout.find("failed=1") != -1
+  run_once: True
+  retries: 5
+  delay: 30
+
+- name: Deploy the required AWX/Automation Controller Operator objects in the awx namespace.
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: |
+    kubectl -n awx get awx,all,ingress,secrets
+  run_once: True
+
+- name: Ensure /root/awx/ directory exists on bootstrap node
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.file:
+    path: /root/awx
+    state: directory
+    mode: 0755
+  run_once: True
+
+#root@awx1:~# cat ./awxes/awx.perthchat2.org.yaml 
 
 - name: Template the AWX manifest
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.template:
     src: "{{ role_path }}/templates/awx.yaml.j2"
-    dest: /root/awx-operator/awx.yaml
+    dest: /root/awx/{{ awx_subdomain }}.{{ awx_base_domain }}.yaml
     mode: 0644
   run_once: True
+
+# kubectl apply -f awx.perthchat2.org.yaml
 
 - name: Apply the AWX manifest
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: |
-    /var/lib/rancher/rke2/bin/kubectl apply -f /root/awx-operator/awx.yaml
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+    kubectl apply -f /root/awx/{{ awx_subdomain }}.{{ awx_base_domain }}.yaml
   run_once: True
-
-- name: Check if AWX/Automation Controller is deployed (max 15min)
-  delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: |
-    /var/lib/rancher/rke2/bin/kubectl -n awx logs --tail=10 deployments/awx-operator-controller-manager -c awx-manager
-  register: result
-  until: result.stdout.find("failed=0") != -1
-  failed_when: result.stdout.find("failed=1") != -1
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
-  run_once: True
-  retries: 25
-  delay: 30
-
-- name: Deploy the required AWX/Automation Controller Operator objects in the awx namespace.
-  ansible.builtin.command: |
-      kubectl -n awx get awx,all,ingress,secrets

@@ -52,8 +52,6 @@
 - name: Add the Longhorn Helm repository
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: helm repo add longhorn https://charts.longhorn.io
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   run_once: True
 
 #helm repo update
@@ -61,26 +59,20 @@
 - name: Update the Helm repositories
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: helm repo update
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   run_once: True
 
 #kubectl create namespace longhorn-system
 
 - name: Check if the Longhorn namespace exists
   delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get namespace longhorn-system
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  ansible.builtin.command: kubectl get namespace longhorn-system
   run_once: True
   register: longhorn_namespace_check
   ignore_errors: True
 
 - name: Create a namespace for Longhorn
   delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl create namespace longhorn-system
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  ansible.builtin.command: kubectl create namespace longhorn-system
   run_once: True
   when: "longhorn_namespace_check.rc != 0 and 'not found' in longhorn_namespace_check.stderr"
 
@@ -89,8 +81,6 @@
 - name: Check if Longhorn is already installed
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: helm list --namespace longhorn-system --filter "^longhorn$"
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   register: longhorn_helm_check
   run_once: True
   ignore_errors: True
@@ -98,8 +88,6 @@
 - name: Deploy Longhorn using Helm
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: helm install longhorn longhorn/longhorn --namespace longhorn-system
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   run_once: True
   when: "'longhorn' not in longhorn_helm_check.stdout"
 
@@ -163,12 +151,10 @@
 - name: Configure Longhorn storage
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.shell: |
-    /var/lib/rancher/rke2/bin/kubectl -n longhorn-system annotate nodes {{ inventory_hostname }} \
+    kubectl -n longhorn-system annotate nodes {{ inventory_hostname }} \
       -o jsonpath='{.metadata.annotations}' \
       --overwrite \
       longhorn.io/node={{ longhorn_mounts | join('') }}
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   when: rke2_type == "agent"
   register: longhorn_storage_config
 
@@ -182,9 +168,7 @@
 - name: Examine the Longhorn_mounts
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.shell: |
-    /var/lib/rancher/rke2/bin/kubectl -n longhorn-system get nodes {{ inventory_hostname }} -o jsonpath='{.items[*].metadata.annotations.longhorn\.io/node}'
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+    kubectl -n longhorn-system get nodes {{ inventory_hostname }} -o jsonpath='{.items[*].metadata.annotations.longhorn\.io/node}'
   when: rke2_type == "agent"
   register: longhorn_mounts_check
 

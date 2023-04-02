@@ -2,10 +2,14 @@
 apiVersion: awx.ansible.com/v1beta1
 kind: AWX
 metadata:
-  name: awx
+  name: awx-perthchat2
+  namespace: awx
 spec:
-  service_type: nodeport
+  admin_user: {{ awx_admin_username }}
+  admin_email: {{ awx_admin_email }}
+  admin_password_secret: {{ awx_admin_password }}
   ingress_type: ingress
-  hostname: awx.{{ awx_base_domain }}
-  ingress_path: /
+  hostname: {{ awx_subdomain }}.{{ awx_base_domain }}
   ingress_tls_secret: tls-awx-ingress
+  ingress_annotations: |
+    environment: testing

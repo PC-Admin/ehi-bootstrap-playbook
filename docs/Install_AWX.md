@@ -9,7 +9,11 @@ How to install this clustered AWX setup.
 Provision at least 3 Ubuntu 22.04 servers with >=32GB RAM, swap disabled and at least 64GB of disk space in the root partition, then setup SSH access to each servers root account, these will be our RKE2/AWX servers.
 
 Alternatively you can provision these servers and configure the DNS automatically using Proxmox and Cloudflare (for the DNS) by:
-1) Save a VM template on Proxmox for an Ubuntu 22.04 with enough CPU/RAM and disk space. Ensure the SSH key in [/group_vars/all.yml](/group_vars/all.yml) can be used to connect to the root account of this machine. Also ensure the 'dhcp-identifier' line is added to the following file:
+1) Save a VM template on Proxmox for an Ubuntu 22.04 with enough CPU/RAM and disk space. 
+
+  a)Ensure the SSH key in [/group_vars/all.yml](/group_vars/all.yml) can be used to connect to the root account of this machine. 
+
+  b) Also ensure the 'dhcp-identifier' line is added to the following file:
 ```
 root@ubuntu:~# cat /etc/netplan/00-installer-config.yaml
 # This is the network config written by 'subiquity'
@@ -20,6 +24,7 @@ network:
       dhcp-identifier: mac
   version: 2
 ```
+  c) Also make sure that the Proxmox templates Processors 'Type' is set to 'host' in Proxmox. This ensures the extra amd64 CPU functions AWX needs are available.
 
 2) Ensure the following variables are filled out in each hosts vars.yml file:
 ```
@@ -31,7 +36,25 @@ proxmox_template: "ubuntu22-8c-8g-32g"   # the name of your VM template
 proxmox_storage: "vm-storage"   # the Proxmox storage ID for the new VMs disk (eg: 'local-lvm')
 ```
 
-3) Run this playbook with the 'provision' tag like so:
+3) Collect your CloudFlare API tokens for the DNS/Deployment:
+
+  a) Log in to your Cloudflare account and navigate to the API Tokens page: https://dash.cloudflare.com/profile/api-tokens.
+
+  b) Collect {{ cloudflare_api_token }} value from the 'Global API Key' section.
+
+  c) Create the {{ cloudflare_dns_token }} with the following permissions:
+
+    i) Select the 'Edit zone DNS' template.
+
+    ii) In the 'Permissions' section at the top, add 'Zone - DNS - Read' and 'Zone - DNS - Edit' as permissions.
+
+    iii) In 'Zone Resources' add an entry for 'Include - Specific zone - example.org' to limit the token to one domain.
+
+    iv) Set IP filtering or an expiry date if you wish.
+
+    v) Check 'Continue to summary'
+
+4) Run this playbook with the 'provision' tag like so:
 
 `$ ansible-playbook -v -i ./inventory/hosts -t "provision" setup.yml`
 

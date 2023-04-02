@@ -7,7 +7,3 @@
 # Deploy AWX to K3s/Kubernetes
 - import_tasks: "{{ role_path }}/tasks/awx_setup.yml"
   tags: [ 'never', 'awx-setup' ]
-
-# Setup K9s on host, a popular kubernetes inspection tool
-#- import_tasks: "{{ role_path }}/tasks/k9s_setup.yml"
-#  tags: [ 'never', 'awx-setup' ]

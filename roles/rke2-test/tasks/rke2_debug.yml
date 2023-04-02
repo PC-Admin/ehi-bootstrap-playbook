@@ -55,24 +55,54 @@
   ignore_errors: True
   tags: [ 'never', 'rke2-setup' ]
 
+# strangely doesn't work...
+
+#- name: Setup bash aliases on RKE2 server nodes
+#  ansible.builtin.lineinfile:
+#    path: /root/.bash_aliases
+#    create: yes
+#    line: "alias kubectl=/var/lib/rancher/rke2/bin/kubectl"
+#    mode: '0644'
+#  when: rke2_type == 'server'
+#  tags: [ 'never', 'rke2-setup' ]
+
+- name: Set path to RKE2 binaries in PATH on RKE2 server nodes
+  lineinfile:
+    path: ~/.bashrc
+    regexp: '^# Unconditionally load the RKE2 bin directory into our path'
+    line: 'export PATH=$PATH:/var/lib/rancher/rke2/bin'
+    insertbefore: "# If not running interactively, don't do anything"
+  when: rke2_type == 'server'
+  tags: [ 'never', 'rke2-setup' ]
+
 # Strangely the rke2 role we're using leaves the permissions on rke2.yaml wide open..
 
-- name: Ensure /etc/rancher/rke2/rke2.yaml is permission 600
+- name: On all nodes, ensure /etc/rancher/rke2/rke2.yaml is permission 600
   ansible.builtin.file:
     path: /etc/rancher/rke2/rke2.yaml
     mode: 0600
-  when: rke2_type == 'agent'
   tags: [ 'never', 'rke2-setup' ]
   ignore_errors: True
+
+# copy the kubeconfig to the root user's home directory
+# root@awx1:~# cat ~/.kube/config
+
+- name: On RKE2 server nodes, copy the kubeconfig to root user's home directory
+  ansible.builtin.copy:
+    src: /etc/rancher/rke2/rke2.yaml
+    dest: /root/.kube/config
+    mode: 0600
+    remote_src: true
+  when: rke2_type == 'server'
+  tags: [ 'never', 'rke2-setup' ]
 
 # Worker nodes aren't being labelled strangely...
 
 - name: Label the additional nodes as worker
   delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.shell: |
-    /var/lib/rancher/rke2/bin/kubectl label node {{ awx_subdomain }}.{{ awx_base_domain }} node-role.kubernetes.io/worker=worker --overwrite
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  ansible.builtin.shell:
+    cmd: kubectl label node {{ rke2_subdomain }}.{{ awx_base_domain }} node-role.kubernetes.io/worker=worker --overwrite
+    executable: /bin/bash
   when: rke2_type == 'agent'
   tags: [ 'never', 'rke2-setup' ]
 
@@ -81,9 +111,7 @@
 - name: Confirm cluster is functional
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.shell: |
-      /var/lib/rancher/rke2/bin/kubectl get nodes
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+    kubectl get nodes
   register: cluster_status
   run_once: True
   tags: [ 'never', 'rke2-setup' ]

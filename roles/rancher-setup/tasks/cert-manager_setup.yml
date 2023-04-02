@@ -4,27 +4,21 @@
 
 - name: Install cert-manager (from bootstrap node)
   delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/{{ cert_manager_version }}/cert-manager.crds.yaml
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  ansible.builtin.command: kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/{{ cert_manager_version }}/cert-manager.crds.yaml
   run_once: True
 
 ## Create a namespace for Cert-Manager:
 
 - name: Check if the Cert-Manager namespace exists
   delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get namespace cert-manager
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  ansible.builtin.command: kubectl get namespace cert-manager
   run_once: True
   register: cert_manager_namespace_check
   ignore_errors: True
 
 - name: Create a namespace for Cert-Manager
   delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl create namespace cert-manager
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  ansible.builtin.command: kubectl create namespace cert-manager
   run_once: True
   when: "cert_manager_namespace_check.rc != 0 and 'not found' in cert_manager_namespace_check.stderr"
 
@@ -33,8 +27,6 @@
 - name: Add the Jetstack Helm repository
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: helm repo add jetstack https://charts.jetstack.io
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   run_once: True
 
 ## Deploy Cert-Manager using Helm:
@@ -42,8 +34,6 @@
 - name: Check if Cert-Manager is already installed
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: helm list --namespace cert-manager --filter "^cert-manager$"
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   register: cert_manager_helm_check
   run_once: True
   ignore_errors: True
@@ -57,17 +47,13 @@
     --create-namespace 
 #\
 #    --set installCRDs=true
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   run_once: True
   when: "'cert-manager' not in cert_manager_helm_check.stdout"
 
 - name: Verify the Cert-Manager installation
   delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: /var/lib/rancher/rke2/bin/kubectl get pods --namespace cert-manager
+  ansible.builtin.command: kubectl get pods --namespace cert-manager
   register: cert_manager_status
-  environment:
-    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
   run_once: True
 
 - name: Display Cert-Manager status output

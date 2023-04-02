@@ -18,7 +18,11 @@ volume_size: 25
 cert_manager_version: "v1.11.0"
 
 # AWX Variables
+awx_subdomain: awx
 awx_base_domain: example.org
+awx_admin_username: "admin"
+awx_admin_password: << Strong user defined password >>
+awx_admin_email: "admin@example.org"
 awx_version: "21.14.0"
 awx_operator_version: "1.4.0"
 kustomize_version: "v5.0.1"
@@ -38,4 +42,5 @@ letsencrypt_email: useremail@protonmail.com
 
 # CloudFlare Variables
 cloudflare_email: useremail@protonmail.com
-cloudflare_api_token: << Cloudflare API Token >>
+cloudflare_api_token: << Cloudflare Global API Key >>	# See 'Global API Key' at https://dash.cloudflare.com/profile/api-tokens
+cloudflare_dns_token: << Cloudflare API Token >>	# See 'API Tokens' at https://dash.cloudflare.com/profile/api-tokens

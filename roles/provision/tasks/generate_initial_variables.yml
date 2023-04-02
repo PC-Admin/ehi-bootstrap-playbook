@@ -9,10 +9,10 @@
   delegate_to: 127.0.0.1
   ansible.builtin.blockinfile:
     path: "/home/{{ lookup('env', 'USER') }}/.ssh/config"
-    marker_begin: "BEGIN SSH config entry for {{ awx_subdomain }}.{{ awx_base_domain }}"
-    marker_end: "END SSH config entry for {{ awx_subdomain }}.{{ awx_base_domain }}"
+    marker_begin: "BEGIN SSH config entry for {{ rke2_subdomain }}.{{ awx_base_domain }}"
+    marker_end: "END SSH config entry for {{ rke2_subdomain }}.{{ awx_base_domain }}"
     block: |
-      Host {{ awx_subdomain }}.{{ awx_base_domain }}
+      Host {{ rke2_subdomain }}.{{ awx_base_domain }}
           HostName {{ server_ip_final }}
           User root
           Port 22
@@ -35,8 +35,8 @@
   lineinfile:
     path: '~/.hosts'
     create: true
-    regexp: "^.*{{ awx_subdomain }}.{{ awx_base_domain }}$"
-    line: "{{ server_ipv4 }} {{ awx_subdomain }}.{{ awx_base_domain }}"
+    regexp: "^.*{{ rke2_subdomain }}.{{ awx_base_domain }}$"
+    line: "{{ server_ipv4 }} {{ rke2_subdomain }}.{{ awx_base_domain }}"
     mode: '0600'
     state: present
   when: ansible_system == 'Linux'

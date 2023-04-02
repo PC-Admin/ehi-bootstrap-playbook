@@ -6,9 +6,9 @@ metadata:
   namespace: awx
 spec:
   secretName: tls-awx-ingress
-  commonName: awx.{{ awx_base_domain }}
+  commonName: {{ awx_subdomain }}.{{ awx_base_domain }}
   dnsNames:
-  - awx.{{ awx_base_domain }}
+  - {{ awx_subdomain }}.{{ awx_base_domain }}
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
