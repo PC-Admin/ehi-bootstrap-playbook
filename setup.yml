@@ -13,8 +13,6 @@
     - longhorn-setup
     - rancher-setup
     - awx-setup
-    #- rke2-setup
-    #- awx-install
-    #- awx-custom-config
+    - awx-custom-config
     #- awx-backup
     #- awx-monitor

@@ -1,23 +1,25 @@
 ---
 
-- name: Ensure /awx/ folder exists
-  ansible.builtin.file:
-    path: '/data/projects/awx/'
-    recurse: yes
-    mode: '0755'
-    state: directory
+#- name: Ensure /awx/ folder exists
+#  ansible.builtin.file:
+#    path: '/data/projects/awx/'
+#    recurse: yes
+#    mode: '0755'
+#    state: directory
 
-- name: Ensure /awx/tokens.yml file exists
-  ansible.builtin.file:
-    path: '/data/projects/awx/tokens.yml'
-    mode: '0600'
-    state: touch
+#- name: Ensure /awx/tokens.yml file exists
+#  ansible.builtin.file:
+#    path: '/data/projects/awx/tokens.yml'
+#    mode: '0600'
+#    state: touch
 
-- name: Insert '# AWX/Automation Controller Token' spacer to tokens.yml
+- name: Insert '# AWX/Automation Controller Token' spacer to /group_vars/all.yml
+  delegate_to: 127.0.0.1
   ansible.builtin.lineinfile:
-    path: /data/projects/awx/tokens.yml
+    path: '{{ playbook_dir }}/group_vars/all.yml'
     line: '# AWX/Automation Controller Token'
     mode: '0600'
+  run_once: true
 
 #- name: Include AWX/Automation Controller master token from tokens.yml
 #  include_vars:
@@ -41,26 +43,28 @@
 #    msg: "{{ awx_token.token }}"
 
 - name: Create a new Master token using username/password
-  delegate_to: localhost
+  delegate_to: 127.0.0.1
   awx.awx.token:
     description: |
         Master Token "{{ lookup('pipe', 'date +%Y-%m-%d@$H:%M:%S') }}"
     scope: "write"
     state: present
-    controller_host: "https://{{ awx_url }}"
-    controller_username: "{{ admin_username }}"
-    controller_password: "{{ admin_password }}"
+    controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
+    controller_username: "{{ awx_admin_username }}"
+    controller_password: "{{ awx_admin_password }}"
     validate_certs: "{{ validate_certs }}"
   register: awx_token
 #  no_log: true
+  run_once: true
 
 #- name: debug
 #  debug:
 #    msg: "{{ awx_token.ansible_facts.tower_token.token }}"
 
 - name: Add master_token line to tokens.yml file
+  delegate_to: 127.0.0.1
   ansible.builtin.lineinfile:
-    path: '/data/projects/awx/tokens.yml'
+    path: '{{ playbook_dir }}/group_vars/all.yml'
     insertafter: '# AWX/Automation Controller Token'
     regexp: "^#? *{{ item.key | regex_escape() }}:"
     line: "{{ item.key }}: {{ item.value }}"
@@ -70,10 +74,12 @@
 #    'master_token': '{{ awx_token.token }}'
     'master_token': '{{ awx_token.ansible_facts.tower_token.token }}'
   no_log: true
+  run_once: true
 
 - name: Add master_token_id line to tokens.yml file
+  delegate_to: 127.0.0.1
   ansible.builtin.lineinfile:
-    path: '/data/projects/awx/tokens.yml'
+    path: '{{ playbook_dir }}/group_vars/all.yml'
     insertafter: '# AWX/Automation Controller Token'
     regexp: "^#? *{{ item.key | regex_escape() }}:"
     line: "{{ item.key }}: {{ item.value }}"
@@ -82,3 +88,4 @@
   with_dict:
     'master_token_id': 'null'
 #    'master_token_id': '{{ master_token_creation.ansible_facts.tower_token.id }}'
+  run_once: true

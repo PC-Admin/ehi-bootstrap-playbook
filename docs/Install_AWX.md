@@ -101,4 +101,4 @@ Record each hosts variables into each hosts ./inventory/host_vars/awx1.example.o
 
 3) Run the playbook with the following tags:
 
-`$ ansible-playbook -v -i ./inventory/hosts -t "rke2-setup,rancher-setup,awx-setup" setup.yml`
+`$ ansible-playbook -v -i ./inventory/hosts -t "rke2-setup,rancher-setup,awx-setup,configure-awx" setup.yml`

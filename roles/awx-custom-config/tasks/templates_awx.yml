@@ -1,6 +1,7 @@
 ---
 
 - name: Create 'AWX Status Check' job template
+  delegate_to: 127.0.0.1
   awx.awx.tower_job_template:
     name: "AWX Status Check"
     description: "Checks to see if the AWX server is functional."
@@ -15,3 +16,4 @@
     tower_host: "https://{{ awx_url }}"
     tower_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
     validate_certs: "{{ validate_certs }}"
+  run_once: true
