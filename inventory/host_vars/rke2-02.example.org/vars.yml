@@ -1,12 +1,6 @@
-# Organisation Settings
-org_name: "Example Inc"
-
-# URL Settings
-awx_subdomain: awx2
-rancher_url: rancher.example.org
-certbot_email: example@protonmail.com
 
 # RKE2 Settings
+rke2_subdomain: rke2-02
 rke2_ha_mode: true
 rke2_type: server
 rke2_download_kubeconf: true

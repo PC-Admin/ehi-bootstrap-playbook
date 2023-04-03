@@ -14,6 +14,10 @@ proxmox_method: "clone" # 'clone' or 'lxc'
 number_of_volumes: 2
 volume_size: 25
 
+# Rancher Variables
+rancher_admin_password: << Strong user defined password >>
+rancher_url: rancher.example.org
+
 # Cert-Manager Variables
 cert_manager_version: "v1.11.0"
 
@@ -27,7 +31,7 @@ awx_version: "21.14.0"
 awx_operator_version: "1.4.0"
 kustomize_version: "v5.0.1"
 validate_certs: False
-deploy_source: "https://github.com/PC-Admin/ehi-bootstrap-playbook.git"
+deploy_source: "https://github.com/application-research/ehi-bootstrap-playbook.git"
 deploy_branch: "main"
 
 # SSH Variables (For DigitalOcean)
@@ -47,3 +51,4 @@ letsencrypt_email: useremail@protonmail.com
 cloudflare_email: useremail@protonmail.com
 cloudflare_api_token: << Cloudflare Global API Key >>	# See 'Global API Key' at https://dash.cloudflare.com/profile/api-tokens
 cloudflare_dns_token: << Cloudflare API Token >>	# See 'API Tokens' at https://dash.cloudflare.com/profile/api-tokens
+

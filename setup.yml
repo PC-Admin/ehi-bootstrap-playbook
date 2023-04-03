@@ -1,7 +1,7 @@
 ---
 
 - name: "Setup for a HA AWX system on a RKE2 K8s cluster."
-  hosts: "{{ 'k8s_cluster' }}" #[masters] [workers] k8s_cluster
+  hosts: "{{ 'k8s_cluster' }}"
   gather_facts: no
 
   roles:
@@ -14,5 +14,3 @@
     - rancher-setup
     - awx-setup
     - awx-custom-config
-    #- awx-backup
-    #- awx-monitor

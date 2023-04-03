@@ -73,9 +73,10 @@
     kubectl get certificates --namespace=awx
   register: certificate_state
   run_once: True
-  retries: 12
+  retries: 6
   delay: 10
   until: "'True' in certificate_state.stdout"
+  ignore_errors: True
 
 # need to keep going until this output is here:
 

@@ -1,12 +1,6 @@
-# Organisation Settings
-org_name: "Example Inc"
-
-# URL Settings
-awx_subdomain: awx4
-rancher_url: rancher.example.org
-certbot_email: example@protonmail.com
 
 # RKE2 Settings
+rke2_subdomain: rke2-05
 rke2_ha_mode: true
 rke2_type: agent
 rke2_download_kubeconf: true
@@ -26,6 +20,6 @@ proxmox_storage: "vm-storage"
 #  - name: eth0
 #    bridge: vmbr0
 #    hwaddr: 02:01:02:03:04:05
-#proxmox_lxc_template: 'local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.zst''
+#proxmox_lxc_template: 'local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.zst'
 
 # Extra variables

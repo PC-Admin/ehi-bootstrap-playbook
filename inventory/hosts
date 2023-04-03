@@ -1,12 +1,12 @@
 
 [masters]
-awx1.example.org ansible_host=awx1.example.org ansible_ssh_user=root
-awx2.example.org ansible_host=awx2.example.org ansible_ssh_user=root
-awx3.example.org ansible_host=awx3.example.org ansible_ssh_user=root
+rke2-01.example.org ansible_host=rke2-01.example.org ansible_ssh_user=root
+rke2-02.example.org ansible_host=rke2-02.example.org ansible_ssh_user=root
+rke2-03.example.org ansible_host=rke2-03.example.org ansible_ssh_user=root
 
 [workers]
-awx4.example.org ansible_host=awx4.example.org ansible_ssh_user=root
-awx5.example.org ansible_host=awx5.example.org ansible_ssh_user=root
+rke2-04.example.org ansible_host=rke2-04.example.org ansible_ssh_user=root
+rke2-05.example.org ansible_host=rke2-05.example.org ansible_ssh_user=root
 
 [k8s_cluster:children]
 masters

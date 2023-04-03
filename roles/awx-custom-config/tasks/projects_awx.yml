@@ -5,7 +5,7 @@
   awx.awx.project:
     name: "AWX Ansible"
     description: "An example playbook for this AWX setup."
-    organization: "{{ org_name }}"
+    organization: "{{ awx_org_name }}"
     scm_type: git
     scm_url: "{{ deploy_source }}"
     scm_branch: "{{ deploy_branch }}"

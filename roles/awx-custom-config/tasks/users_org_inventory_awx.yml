@@ -3,7 +3,7 @@
 - name: Create the admin organisation
   delegate_to: 127.0.0.1
   awx.awx.organization:
-    name: "{{ org_name }}"
+    name: "{{ awx_org_name }}"
     description: "The main organisation that is used to manage other organisations."
     galaxy_credentials: "Ansible Galaxy"
     state: present
@@ -16,7 +16,7 @@
   delegate_to: 127.0.0.1
   awx.awx.role:
     user: "{{ awx_admin_username }}"
-    organization: "{{ org_name }}"
+    organization: "{{ awx_org_name }}"
     role: member
     controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
     controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
@@ -26,9 +26,9 @@
 - name: Add organisations inventory to the admins organisation
   delegate_to: 127.0.0.1
   awx.awx.inventory:
-    name: "{{ org_name }}"
-    description: "{{ org_name }} inventory, a blank inventory you can add hosts too!"
-    organization: "{{ org_name }}"
+    name: "{{ awx_org_name }}"
+    description: "{{ awx_org_name }} inventory, a blank inventory you can add hosts too!"
+    organization: "{{ awx_org_name }}"
     state: present
     controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
     controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
@@ -40,7 +40,7 @@
   awx.awx.inventory:
     name: "Localhost"
     description: "An custom inventory for the AWX to dump it's backup to the host OS."
-    organization: "{{ org_name }}"
+    organization: "{{ awx_org_name }}"
     state: present
     variables:
       ansible_connection: local
@@ -54,8 +54,8 @@
   delegate_to: 127.0.0.1
   awx.awx.inventory:
     name: "AWX Server"
-    description: "{{ org_name }} inventory"
-    organization: "{{ org_name }}"
+    description: "{{ awx_org_name }} inventory"
+    organization: "{{ awx_org_name }}"
     state: present
     controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
     controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
@@ -65,9 +65,9 @@
 - name: Add organisations inventory to the admins organisation
   delegate_to: 127.0.0.1
   awx.awx.inventory:
-    name: "{{ org_name }}"
-    description: "{{ org_name }} inventory"
-    organization: "{{ org_name }}"
+    name: "{{ awx_org_name }}"
+    description: "{{ awx_org_name }} inventory"
+    organization: "{{ awx_org_name }}"
     state: present
     controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
     controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"

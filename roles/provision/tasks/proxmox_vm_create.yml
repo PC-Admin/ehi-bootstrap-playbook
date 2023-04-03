@@ -134,6 +134,15 @@
   set_fact:
     qemu_unloaded_status: "QEMU guest agent is not running"
 
+#- name: Pause for 3 minutes to let the VMs warm up and get their IPs (Coffee time!)
+#  pause:
+#    seconds: 180
+#  run_once: true
+
+# ^ doesn't help either..
+
+# VMs return results before a new IP is even issues :O this code doesn't work!
+
 - name: Probe proxmox host for VMs network details for up to 180 seconds
   delegate_to: "{{ item.invocation.module_args.node }}"
   command: |
