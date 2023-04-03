@@ -85,7 +85,7 @@ Note: The other server nodes besides the bootstrap node are commented out, this 
 
 1) Install the following ansible-galaxy packages on the controller:
 ```
-$ ansible-galaxy collection install --force awx.awx:21.9.0
+$ ansible-galaxy collection install --force awx.awx:21.14.0
 $ ansible-galaxy install lablabs.rke2
 $ ansible-galaxy collection install community.grafana
 $ ansible-galaxy collection install community.digitalocean

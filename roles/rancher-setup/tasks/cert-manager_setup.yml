@@ -45,8 +45,7 @@
     --namespace cert-manager \
     --version {{ cert_manager_version }} \
     --create-namespace 
-#\
-#    --set installCRDs=true
+#    --set installCRDs=true was this important? :P
   run_once: True
   when: "'cert-manager' not in cert_manager_helm_check.stdout"
 
@@ -55,6 +54,9 @@
   ansible.builtin.command: kubectl get pods --namespace cert-manager
   register: cert_manager_status
   run_once: True
+  retries: 12 # Number of retries, you can adjust this value as needed
+  delay: 10   # Time in seconds between retries, you can adjust this value as needed
+  until: "cert_manager_status.stdout is search('1/1\\s+Running')"
 
 - name: Display Cert-Manager status output
   ansible.builtin.debug:

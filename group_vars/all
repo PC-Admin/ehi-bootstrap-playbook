@@ -27,6 +27,8 @@ awx_version: "21.14.0"
 awx_operator_version: "1.4.0"
 kustomize_version: "v5.0.1"
 validate_certs: False
+deploy_source: "https://github.com/PC-Admin/ehi-bootstrap-playbook.git"
+deploy_branch: "main"
 
 # SSH Variables (For DigitalOcean)
 ssh_key_file_public: ~/.ssh/testing_2022.pub

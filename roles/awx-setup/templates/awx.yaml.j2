@@ -7,7 +7,7 @@ metadata:
 spec:
   admin_user: {{ awx_admin_username }}
   admin_email: {{ awx_admin_email }}
-  admin_password_secret: {{ awx_admin_password }}
+  admin_password_secret: awx-admin-secret
   ingress_type: ingress
   hostname: {{ awx_subdomain }}.{{ awx_base_domain }}
   ingress_tls_secret: tls-awx-ingress

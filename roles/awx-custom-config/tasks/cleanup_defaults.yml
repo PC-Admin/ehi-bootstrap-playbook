@@ -21,11 +21,11 @@
 
 - name: Create a AWX/Automation Controller session token for executing AWX modules
   delegate_to: 127.0.0.1
-  awx.awx.tower_token:
+  awx.awx.token:
     description: 'AWX/Automation Controller Session Token'
     scope: "write"
     state: present
-    tower_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
+    controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
     tower_oauthtoken: "{{ master_token }}"
     validate_certs: "{{ validate_certs }}"
   register: awx_session_token
@@ -33,61 +33,61 @@
 
 - name: Remove the default 'Demo Job Template'
   delegate_to: 127.0.0.1
-  awx.awx.tower_job_template:
+  awx.awx.job_template:
     name: "Demo Job Template"
     job_type: run
     project: "Demo Project"
     playbook: hello_world.yml
     state: absent
-    tower_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
-    tower_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
+    controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
+    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
     validate_certs: "{{ validate_certs }}"
   run_once: true
 
 - name: Remove the default 'Demo Project'
   delegate_to: 127.0.0.1
-  awx.awx.tower_project:
+  awx.awx.project:
     name: "Demo Project"
     organization: "Default"
     state: absent
-    tower_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
-    tower_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
+    controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
+    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
     validate_certs: "{{ validate_certs }}"
   ignore_errors: true
   run_once: true
 
 - name: Remove the default 'Demo Inventory'
   delegate_to: 127.0.0.1
-  awx.awx.tower_inventory:
+  awx.awx.inventory:
     name: "Demo Inventory"
     organization: "Default"
     state: absent
-    tower_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
-    tower_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
+    controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
+    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
     validate_certs: "{{ validate_certs }}"
   ignore_errors: true
   run_once: true
 
 - name: Remove the default 'Demo Credential' credential
   delegate_to: 127.0.0.1
-  awx.awx.tower_credential:
+  awx.awx.credential:
     name: "Demo Credential"
     user: "admin"
     credential_type: ssh
     state: absent
-    tower_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
-    tower_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
+    controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
+    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
     validate_certs: "{{ validate_certs }}"
   ignore_errors: true
   run_once: true
 
 - name: Remove the default 'Default' organisation
   delegate_to: 127.0.0.1
-  awx.awx.tower_organization:
+  awx.awx.organization:
     name: "Default"
     state: absent
-    tower_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
-    tower_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
+    controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
+    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
     validate_certs: "{{ validate_certs }}"
   ignore_errors: true
   run_once: true

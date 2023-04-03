@@ -2,7 +2,7 @@
 
 - name: Add 'AWX Ansible' project to AWX admins organisation
   delegate_to: 127.0.0.1
-  awx.awx.tower_project:
+  awx.awx.project:
     name: "AWX Ansible"
     description: "An example playbook for this AWX setup."
     organization: "{{ org_name }}"
@@ -12,17 +12,17 @@
     scm_delete_on_update: yes
     scm_update_on_launch: no
     state: present
-    tower_host: "https://{{ awx_url }}"
-    tower_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
+    controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
+    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
     validate_certs: "{{ validate_certs }}"
   run_once: true
 
 - name: Update 'AWX Ansible' project
   delegate_to: 127.0.0.1
-  awx.awx.tower_project_update:
+  awx.awx.project_update:
     name: "AWX Ansible"
     timeout: 300
-    tower_host: "https://{{ awx_url }}"
-    tower_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
+    controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
+    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
     validate_certs: "{{ validate_certs }}"
   run_once: true

@@ -67,12 +67,15 @@
 
 # wings:homelab-dns/ $ kubectl get certificates
 
-- name: Examine the state of the Cert-Manager certificate
+- name: Verify that the Cert-Manager certificate is ready
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: |
     kubectl get certificates --namespace=awx
   register: certificate_state
   run_once: True
+  retries: 12
+  delay: 10
+  until: "'True' in certificate_state.stdout"
 
 # need to keep going until this output is here:
 
