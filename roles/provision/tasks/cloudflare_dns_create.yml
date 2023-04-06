@@ -13,6 +13,7 @@
   with_items: "{{ rke2_subdomain }}"
   when: ( server_ipv4 | length > 0 )
   register: record_ipv4
+  ignore_errors: true
 
 - name: Print the new IPv4 DNS record
   delegate_to: 127.0.0.1

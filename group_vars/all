@@ -1,5 +1,5 @@
 # HAProxy Variables
-haproxy_nodes: [ 'haproxy01', 'haproxy02', 'haproxy03' ]
+haproxy_nodes: [ 'haproxy01.example.org', 'haproxy02.example.org', 'haproxy03.example.org' ]
 
 # RKE2 Variables
 rke2_load_balancer: leader.example.org
@@ -33,11 +33,15 @@ kustomize_version: "v5.0.1"
 validate_certs: False
 deploy_source: "https://github.com/application-research/ehi-bootstrap-playbook.git"
 deploy_branch: "main"
+awx_deploy_source: "https://github.com/application-research/ehi-bootstrap-playbook.git"
+awx_deploy_branch: "main"
+awx_resources_source: "git@github.com:application-research/ehi-awx-resources.git"
+awx_resources_branch: "main"
+awx_resources_deploy_key: "~/.ssh/awx-git-key"
+awx_resources_git_username: "PC-Admin"
 
 # SSH Variables (For DigitalOcean)
-ssh_key_file_public: ~/.ssh/testing_2022.pub
 ssh_key_file_private: ~/.ssh/testing_2022
-ssh_key_file_password: << SSH Key Passphrase >>
 public_ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AADFTJYPCF0uLvDUiO7mRdqkwiueeUgyTrK6R3WTN/dg0DJt michael@perthchat.org 11-2022"
 
 # RKE2 Variables

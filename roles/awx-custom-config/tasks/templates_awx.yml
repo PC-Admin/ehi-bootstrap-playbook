@@ -9,11 +9,28 @@
     inventory: "AWX Server"
     project: "AWX Ansible"
     playbook: "playbooks/check_awx.yml"
-    #credentials: [ "AWX SSH Key", "Borgmatic Password" ]
-    extra_vars: { awx_url: "{{ awx_subdomain }}.{{ awx_base_domain }}", awx_token: "{{ awx_session_token.ansible_facts.tower_token.token }}" }
+    extra_vars: { awx_url: "{{ awx_subdomain }}.{{ awx_base_domain }}", awx_token: "{{ awx_oauth_token }}" }
     state: present
     verbosity: 1
     controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
-    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
+    controller_oauthtoken: "{{ awx_oauth_token }}"
+    validate_certs: "{{ validate_certs }}"
+  run_once: true
+
+- name: Create 'AWX Deploy Resources' job template
+  delegate_to: 127.0.0.1
+  awx.awx.job_template:
+    name: "AWX Deploy Resources"
+    description: "Runs the target playbook against AWX."
+    job_type: run
+    inventory: "AWX Server"
+    project: "AWX Ansible"
+    playbook: "setup.yml"
+    credentials: [ "AWX Vault Secret" ]
+    extra_vars: { awx_url: "{{ awx_subdomain }}.{{ awx_base_domain }}", awx_token: "{{ awx_oauth_token }}" }
+    state: present
+    verbosity: 1
+    controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
+    controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"
   run_once: true

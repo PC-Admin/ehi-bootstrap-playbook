@@ -26,3 +26,6 @@
 # Generates initial variables and sets up SSH access
 - import_tasks: "{{ role_path }}/tasks/generate_initial_variables.yml"
   tags: [ 'never', 'provision' ]
+
+- import_tasks: "{{ role_path }}/tasks/ssh_cleanup.yml"
+  tags: [ 'never', 'teardown' ]

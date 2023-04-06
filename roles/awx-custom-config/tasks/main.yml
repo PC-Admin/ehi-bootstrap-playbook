@@ -1,8 +1,16 @@
 ---
 
-# Generates Master OAuth token for administrator account on AWX
-- import_tasks: "{{ role_path }}/tasks/master_token.yml"
-  tags: [ 'never', 'master-token' ]
+# Creates a vault password file if it doesn't exist at ./vault/password-file
+- import_tasks: "{{ role_path }}/tasks/create_vault_password_file.yml"
+  tags: [ 'never', 'ansible-vault' ]
+
+# Decrypts the ./group_vars/secrets.yml variable file if it exists
+- import_tasks: "{{ role_path }}/tasks/vault_decrypt.yml"
+  tags: [ 'never', 'configure-awx', 'ansible-vault' ]
+
+# Generates ./group_vars/secrets.yml if it doesn't exist and generates a OAuth token for AWX
+- import_tasks: "{{ role_path }}/tasks/awx_token.yml"
+  tags: [ 'never', 'awx-token' ]
 
 # AWX cleanup default configuration
 - import_tasks: "{{ role_path }}/tasks/cleanup_defaults.yml"
@@ -25,5 +33,9 @@
   tags: [ 'never', 'configure-awx' ]
 
 # AWX configure job schedules
-#- import_tasks: "{{ role_path }}/tasks/schedules_awx.yml"
-#  tags: [ 'never', 'configure-awx' ]
+- import_tasks: "{{ role_path }}/tasks/schedules_awx.yml"
+  tags: [ 'never', 'configure-awx' ]
+
+# Encrypts the ./group_vars/secrets.yml variable file with any saved variables
+- import_tasks: "{{ role_path }}/tasks/vault_encrypt.yml"
+  tags: [ 'never', 'configure-awx', 'ansible-vault' ]

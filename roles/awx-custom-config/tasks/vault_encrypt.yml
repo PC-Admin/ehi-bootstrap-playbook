@@ -1,0 +1,22 @@
+---
+
+- name: Vault encrypt plain-text.yml to secrets.yml
+  delegate_to: 127.0.0.1
+  ansible.builtin.shell:
+    cmd: "ansible-vault encrypt --vault-password-file {{ playbook_dir }}/vault/password-file --vault-id awx-secrets@/dev/stdin --output {{ playbook_dir }}/group_vars/secrets.yml {{ playbook_dir }}/group_vars/plain-text.yml"
+  no_log: true
+  run_once: true
+
+- name: Set preserve_vault_file variable based on the tag
+  delegate_to: 127.0.0.1
+  set_fact:
+    preserve_vault_file: "{{ 'preserve-vault-file' in ansible_run_tags }}"
+  run_once: true
+
+- name: Delete plain-text.yml file from the Ansible controller
+  delegate_to: 127.0.0.1
+  ansible.builtin.file:
+    path: "{{ playbook_dir }}/group_vars/plain-text.yml"
+    state: absent
+  run_once: true
+  when: not preserve_vault_file

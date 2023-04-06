@@ -1,31 +1,26 @@
 ---
 
 - name: Collect timezone of AWX server (Debian and derivatives only)
+  delegate_to: "{{ rke2_bootstrap_node }}"
   command: cat /etc/timezone
   register: timezone_output
+  run_once: true
 
 - name: Create an rrule string for the 'Deploy an AWX Server'
   set_fact:
     rrule_line_update: "DTSTART;TZID={{ timezone_output.stdout }}:{{ update_schedule_start }} RRULE:FREQ={{ update_schedule_frequency }};INTERVAL={{ update_schedule_interval }}"
+  run_once: true
 
-- name: Build a schedule for 'Deploy an AWX Server' job template
+- name: Build a schedule for 'AWX Deploy Resources' job template
+  delegate_to: 127.0.0.1
   awx.awx.tower_schedule:
-    name: "Deploy AWX Server"
+    name: "AWX Deploy Resources"
     enabled: yes
     state: present
-    unified_job_template: "Deploy an AWX Server"
-    extra_data: "{{ lookup('file', '{{ role_path }}/extra-vars/update_all.json') }}"
+    unified_job_template: "AWX Deploy Resources"
+    #extra_data: "{{ lookup('file', '{{ role_path }}/extra-vars/awx_resources.json') }}"
     rrule: "{{ rrule_line_update }}"
     controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
-    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
+    controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"
-
-- name: Delete the AWX session token for executing modules
-  awx.awx.token:
-    description: 'AWX Session Token'
-    scope: "write"
-    state: absent
-    existing_token_id: "{{ awx_session_token.ansible_facts.tower_token.id }}"
-    controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
-    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
-    validate_certs: "{{ validate_certs }}"
+  run_once: true

@@ -29,6 +29,7 @@
     mode: '0600'
     state: present
   when: ansible_system == 'Linux'
+  run_once: true
 
 - name: Add host entry to ~/.hosts file
   delegate_to: 127.0.0.1

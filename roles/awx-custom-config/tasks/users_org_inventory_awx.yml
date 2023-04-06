@@ -8,7 +8,7 @@
     galaxy_credentials: "Ansible Galaxy"
     state: present
     controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
-    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
+    controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"
   run_once: true
 
@@ -19,7 +19,7 @@
     organization: "{{ awx_org_name }}"
     role: member
     controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
-    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
+    controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"
   run_once: true
 
@@ -31,7 +31,7 @@
     organization: "{{ awx_org_name }}"
     state: present
     controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
-    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
+    controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"
   run_once: true
 
@@ -46,7 +46,7 @@
       ansible_connection: local
       ansible_python_interpreter: '{{ ansible_playbook_python }}'
     controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
-    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
+    controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"
   run_once: true
 
@@ -58,7 +58,7 @@
     organization: "{{ awx_org_name }}"
     state: present
     controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
-    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
+    controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"
   run_once: true
 
@@ -70,7 +70,7 @@
     organization: "{{ awx_org_name }}"
     state: present
     controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
-    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
+    controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"
   run_once: true
 
@@ -82,7 +82,7 @@
     inventory: "AWX Server"
     state: present
     controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
-    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
+    controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"
   ignore_errors: True
   run_once: true
@@ -95,7 +95,7 @@
     inventory: "Localhost"
     state: present
     controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
-    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
+    controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"
   run_once: true
 
@@ -107,7 +107,7 @@
     role: use
     state: present
     controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
-    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
+    controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"
   run_once: true
 
@@ -119,7 +119,7 @@
     role: use
     state: present
     controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
-    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
+    controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"
   run_once: true
 
@@ -129,7 +129,7 @@
     name: "TOWER_URL_BASE"
     value: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
     controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
-    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
+    controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"
   run_once: true
 
@@ -139,7 +139,7 @@
     name: "AWX_ROLES_ENABLED"
     value: true
     controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
-    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
+    controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"
   run_once: true
 
@@ -149,6 +149,6 @@
     name: "AWX_COLLECTIONS_ENABLED"
     value: true
     controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
-    controller_oauthtoken: "{{ awx_session_token.ansible_facts.tower_token.token }}"
+    controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"
   run_once: true

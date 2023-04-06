@@ -134,13 +134,6 @@
   set_fact:
     qemu_unloaded_status: "QEMU guest agent is not running"
 
-#- name: Pause for 3 minutes to let the VMs warm up and get their IPs (Coffee time!)
-#  pause:
-#    seconds: 180
-#  run_once: true
-
-# ^ doesn't help either..
-
 # VMs return results before a new IP is even issues :O this code doesn't work!
 
 - name: Probe proxmox host for VMs network details for up to 180 seconds
@@ -155,10 +148,6 @@
   register: qemu_guest_info
   run_once: true
 
-#- name: qemu_guest_info
-#  debug:
-#    msg: "{{ qemu_guest_info }}"
-#  run_once: true
 
 #- name: qemu_guest_info.results
 #  debug:
@@ -187,7 +176,7 @@
 
 - name: "Write IPv4 to each hosts inventory file"
   delegate_to: 127.0.0.1
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: './inventory/host_vars/{{ item.0 }}/vars.yml'
     regexp: "^#?server_ipv4:.*$"
     line: "server_ipv4: {{ item.1.stdout | from_json | json_query('[*][\"ip-addresses\"][0][0] | [1]') | json_query('[\"ip-address\"][0]') }}"
@@ -199,7 +188,7 @@
 
 - name: "Write IPv6 to each hosts inventory file"
   delegate_to: 127.0.0.1
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: './inventory/host_vars/{{ item.0 }}/vars.yml'
     regexp: "^#?server_ipv6:.*$"
     line: "server_ipv6: {{ item.1.stdout | from_json | json_query('[*][\"ip-addresses\"][0][1] | [1]') | json_query('[\"ip-address\"][0]') }}"

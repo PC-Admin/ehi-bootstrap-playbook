@@ -1,0 +1,55 @@
+---
+
+- name: Check if vault password-file exists
+  delegate_to: 127.0.0.1
+  ansible.builtin.stat:
+    path: '{{ playbook_dir }}/vault/password-file'
+  register: vault_password_file
+  run_once: true
+
+- name: Fail if vault password-file doesn't exist
+  ansible.builtin.fail:
+    msg: "Vault password file '{{ playbook_dir }}/vault/password-file' does not exist. \n\nPlease find and add your vault-password file first, this playbook requires it to unlock the secrets.yml variable file. \n\nIf this is you're first time running this playbook, create the file before running the playbook by running it again with the 'create-vault-password-file' tag."
+  when: not vault_password_file.stat.exists
+  run_once: true
+
+- name: Ensure group_vars/secrets.yml exists on the Ansible controller
+  delegate_to: 127.0.0.1
+  ansible.builtin.file:
+    path: '{{ playbook_dir }}/group_vars/secrets.yml'
+    mode: '0600'
+    force: yes
+    state: touch
+  run_once: true
+
+- name: Check if group_vars/secrets.yml exists
+  delegate_to: 127.0.0.1
+  ansible.builtin.stat:
+    path: '{{ playbook_dir }}/group_vars/secrets.yml'
+  register: secrets_file
+  run_once: true
+
+- name: Check if group_vars/secrets.yml is a vault encrypted file
+  delegate_to: 127.0.0.1
+  ansible.builtin.shell:
+    cmd: "ansible-vault view --vault-id awx-secrets@/dev/stdin {{ playbook_dir }}/group_vars/secrets.yml"
+  register: vault_check
+  ignore_errors: true
+  run_once: true
+  when: secrets_file.stat.exists
+
+- name: If it exists, vault decrypt secrets.yml to plain-text.yml
+  delegate_to: 127.0.0.1
+  ansible.builtin.shell:
+    cmd: "ansible-vault decrypt --vault-password-file {{ playbook_dir }}/vault/password-file --vault-id awx-secrets@/dev/stdin --output {{ playbook_dir }}/group_vars/plain-text.yml {{ playbook_dir }}/group_vars/secrets.yml"
+  no_log: true
+  run_once: true
+  when: vault_check.rc == 0
+
+- name: Include AWX/Automation Controller master token from plain-text.yml
+  delegate_to: 127.0.0.1
+  include_vars:
+    file: '{{ playbook_dir }}/group_vars/plain-text.yml'
+  no_log: True
+  run_once: true
+  when: vault_check.rc == 0

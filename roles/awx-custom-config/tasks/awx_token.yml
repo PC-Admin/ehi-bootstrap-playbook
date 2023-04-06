@@ -1,0 +1,68 @@
+---
+
+- name: Ensure group_vars/plain-text.yml exists on the Ansible controller
+  delegate_to: 127.0.0.1
+  ansible.builtin.file:
+    path: '{{ playbook_dir }}/group_vars/plain-text.yml'
+    mode: '0600'
+    force: yes
+    state: touch
+  run_once: true
+
+- name: Insert '# AWX Token' spacer to /group_vars/plain-text.yml
+  delegate_to: 127.0.0.1
+  ansible.builtin.lineinfile:
+    path: '{{ playbook_dir }}/group_vars/plain-text.yml'
+    line: '# AWX Token'
+    mode: '0600'
+  run_once: true
+
+#- name: debug
+#  debug:
+#    msg: "{{ awx_token.token }}"
+
+- name: Create a new AWX OAuth token using the admin username/password
+  delegate_to: 127.0.0.1
+  awx.awx.token:
+    description: |
+        AWX Primary Token "{{ lookup('pipe', 'date +%Y-%m-%d@$H:%M:%S') }}"
+    scope: "write"
+    state: present
+    controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
+    controller_username: "{{ awx_admin_username }}"
+    controller_password: "{{ awx_admin_password }}"
+    validate_certs: "{{ validate_certs }}"
+  register: awx_token
+  no_log: true
+  run_once: true
+
+#- name: debug
+#  debug:
+#    msg: "{{ awx_token.ansible_facts.tower_token.token }}"
+
+- name: Add awx_oauth_token line to plain-text.yml file
+  delegate_to: 127.0.0.1
+  ansible.builtin.lineinfile:
+    path: '{{ playbook_dir }}/group_vars/plain-text.yml'
+    insertafter: '# AWX/Automation Controller Token'
+    regexp: "^#? *{{ item.key | regex_escape() }}:"
+    line: "{{ item.key }}: {{ item.value }}"
+    mode: '0600'
+    state: present
+  with_dict:
+    'awx_oauth_token': '{{ awx_token.ansible_facts.tower_token.token }}'
+  no_log: true
+  run_once: true
+
+- name: Add awx_oauth_token_id line to plain-text.yml file
+  delegate_to: 127.0.0.1
+  ansible.builtin.lineinfile:
+    path: '{{ playbook_dir }}/group_vars/plain-text.yml'
+    insertafter: '# AWX/Automation Controller Token'
+    regexp: "^#? *{{ item.key | regex_escape() }}:"
+    line: "{{ item.key }}: {{ item.value }}"
+    mode: '0600'
+    state: present
+  with_dict:
+    'awx_oauth_token_id': 'null'
+  run_once: true
