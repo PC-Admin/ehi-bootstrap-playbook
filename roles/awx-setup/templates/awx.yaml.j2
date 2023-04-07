@@ -9,7 +9,7 @@ spec:
   admin_email: {{ awx_admin_email }}
   admin_password_secret: awx-admin-secret
   ingress_type: ingress
-  hostname: {{ awx_subdomain }}.{{ awx_base_domain }}
+  hostname: {{ awx_domain }}
   ingress_tls_secret: tls-awx-ingress
   ingress_annotations: |
     environment: testing

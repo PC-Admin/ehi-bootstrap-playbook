@@ -3,7 +3,7 @@
 - name: Create A records that points to the servers IP
   delegate_to: 127.0.0.1
   community.general.cloudflare_dns:
-    zone: '{{ awx_base_domain }}'
+    zone: "{{ awx_domain.split('.')[1:] | join('.') }}"
     record: '{{ item }}'
     type: A
     value: '{{ server_ipv4 }}'
@@ -24,7 +24,7 @@
 - name: Create an A record for the Load Balancer
   delegate_to: 127.0.0.1
   community.general.cloudflare_dns:
-    zone: '{{ awx_base_domain }}'
+    zone: "{{ awx_domain.split('.')[1:] | join('.') }}"
     record: "{{ rke2_load_balancer | regex_replace('(\\.)(.*)$', '') }}"
     type: A
     value: '{{ rke2_api_ip }}'
@@ -45,7 +45,7 @@
 - name: Create an A record for Rancher
   delegate_to: 127.0.0.1
   community.general.cloudflare_dns:
-    zone: '{{ awx_base_domain }}'
+    zone: "{{ awx_domain.split('.')[1:] | join('.') }}"
     record: "rancher"
     type: A
     value: '{{ rke2_api_ip }}'
@@ -58,8 +58,8 @@
 - name: Create an A record for AWX
   delegate_to: 127.0.0.1
   community.general.cloudflare_dns:
-    zone: '{{ awx_base_domain }}'
-    record: "{{ awx_subdomain }}"
+    zone: "{{ awx_domain.split('.')[1:] | join('.') }}"
+    record: "{{ awx_domain.split('.')[0] }}"
     type: A
     value: '{{ rke2_api_ip }}'
     account_email: '{{ cloudflare_email }}'

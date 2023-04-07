@@ -1,24 +1,5 @@
 ---
 
-- name: Include AWX/Automation Controller master token from plain-text.yml
-  delegate_to: 127.0.0.1
-  include_vars:
-    file: '{{ playbook_dir }}/group_vars/plain-text.yml'
-  no_log: True
-  run_once: true
-
-#- name: Set awx_oauth_token if already generated in this run. (This allows this task list to execute inside AWX.)
-#  ansible.builtin.set_fact:
-#    awx_oauth_token: "{{ awx_token.ansible_facts.tower_token.token }}"
-#  when: awx_token.ansible_facts.tower_token.token is defined
-#  run_once: true
-
-#- name: Print the AWX Oauth token
-#  delegate_to: 127.0.0.1
-#  debug:
-#    msg: "AWX Oauth token: {{ awx_oauth_token }}"
-#  run_once: true
-
 - name: Remove the default 'Demo Job Template'
   delegate_to: 127.0.0.1
   awx.awx.job_template:
@@ -27,7 +8,7 @@
     project: "Demo Project"
     playbook: hello_world.yml
     state: absent
-    controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
+    controller_host: "https://{{ awx_domain }}"
     controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"
   run_once: true
@@ -38,7 +19,7 @@
     name: "Demo Project"
     organization: "Default"
     state: absent
-    controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
+    controller_host: "https://{{ awx_domain }}"
     controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"
   ignore_errors: true
@@ -50,7 +31,7 @@
     name: "Demo Inventory"
     organization: "Default"
     state: absent
-    controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
+    controller_host: "https://{{ awx_domain }}"
     controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"
   ignore_errors: true
@@ -63,7 +44,7 @@
     user: "admin"
     credential_type: "Machine"
     state: absent
-    controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
+    controller_host: "https://{{ awx_domain }}"
     controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"
   ignore_errors: true
@@ -74,7 +55,7 @@
   awx.awx.organization:
     name: "Default"
     state: absent
-    controller_host: "https://{{ awx_subdomain }}.{{ awx_base_domain }}"
+    controller_host: "https://{{ awx_domain }}"
     controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"
   ignore_errors: true

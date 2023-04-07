@@ -2,7 +2,7 @@
 
 - name: Set hostname for each RKE2 node to its domain
   hostname:
-    name: "{{ rke2_subdomain }}.{{ awx_base_domain }}"
+    name: "{{ rke2_subdomain }}.{{ awx_domain.split('.')[1:] | join('.') }}"
   tags: [ 'never', 'rke2-setup' ]
 
 - name: Disable all swap on AWX/Rancher server

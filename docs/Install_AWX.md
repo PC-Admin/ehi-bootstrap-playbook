@@ -92,25 +92,17 @@ $ ansible-galaxy collection install community.digitalocean
 ```
 
 
-2) Edit hosts into: [./inventory/hosts](./inventory/hosts)
+2) Edit hosts into [./inventory/hosts](./inventory/hosts)
 
 Create folder for each host at: ./inventory/host_vars/
 
 Record each hosts variables into each hosts ./inventory/host_vars/awx1.example.org/vars.yml file.
 
 
-3) If this is your first time running this playbook and you haven't got either of these files:
-```
-./group_vars/secrets.yml
-./vault/password-file
-```
-
-That's cool! It will create them automatically for you! Just be aware that you'll need to preserve the ./vault/password-file, keep it somewhere private and safe.
+3) Edit global variables in [./group_vars/all.yml](./group_vars/all.yml)
 
 
 4) Run the playbook with the following tags:
 
-`$ ansible-playbook -v -i ./inventory/hosts -t "rke2-setup,rancher-setup,awx-setup,ansible-vault,awx-token,configure-awx" setup.yml`
-
-Note: To the 'ansible-vault' tag will decrypt the ./group_vars/secrets.yml file if it exists, otherwise it will create it for the first time with only a few variables about the AWX oauth token that's generated. 
+`$ ansible-playbook -v -i ./inventory/hosts -t "rke2-setup,rancher-setup,awx-setup,configure-awx" setup.yml`
 

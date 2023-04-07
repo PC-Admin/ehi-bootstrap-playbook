@@ -1,4 +1,0 @@
----
-
-# Convert integers to letters for longhorn drive names
-#to_letter: "{{ lookup('pipe', 'echo ' ~ ((item | int) + 96) ~ ' | awk \"{printf \\"%c\\\", $1}\"') }}"

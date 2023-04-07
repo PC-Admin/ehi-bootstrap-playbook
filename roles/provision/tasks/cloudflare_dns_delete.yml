@@ -3,7 +3,7 @@
 - name: Remove A records that points to the servers IP
   delegate_to: 127.0.0.1
   community.general.cloudflare_dns:
-    zone: '{{ awx_base_domain }}'
+    zone: "{{ awx_domain.split('.')[1:] | join('.') }}"
     record: '{{ item }}'
     type: A
     account_email: '{{ cloudflare_email }}'
@@ -17,7 +17,7 @@
 - name: Remove A record that points to the Load Balancer
   delegate_to: 127.0.0.1
   community.general.cloudflare_dns:
-    zone: '{{ awx_base_domain }}'
+    zone: "{{ awx_domain.split('.')[1:] | join('.') }}"
     record: "{{ rke2_load_balancer | regex_replace('(\\.)(.*)$', '') }}"
     type: A
     account_email: '{{ cloudflare_email }}'
@@ -30,7 +30,7 @@
 - name: Remove A record for Rancher
   delegate_to: 127.0.0.1
   community.general.cloudflare_dns:
-    zone: '{{ awx_base_domain }}'
+    zone: "{{ awx_domain.split('.')[1:] | join('.') }}"
     record: "rancher"
     type: A
     account_email: '{{ cloudflare_email }}'
@@ -43,8 +43,8 @@
 - name: Remove A record for AWX
   delegate_to: 127.0.0.1
   community.general.cloudflare_dns:
-    zone: '{{ awx_base_domain }}'
-    record: "{{ awx_subdomain }}"
+    zone: "{{ awx_domain.split('.')[1:] | join('.') }}"
+    record: "{{ awx_domain.split('.')[0] }}"
     type: A
     account_email: '{{ cloudflare_email }}'
     account_api_token: '{{ cloudflare_api_token }}'

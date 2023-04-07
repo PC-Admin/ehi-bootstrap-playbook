@@ -1,0 +1,6 @@
+---
+
+awx_version: "21.14.0"
+awx_operator_version: "1.4.0"
+kustomize_version: "v5.0.1"
+rke2_version: v1.24.11+rke2r1

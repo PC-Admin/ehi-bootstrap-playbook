@@ -121,14 +121,14 @@
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.template:
     src: "{{ role_path }}/templates/admin-secret.yaml.j2"
-    dest: /root/awx/{{ awx_subdomain }}.{{ awx_base_domain }}-admin-secret.yaml
+    dest: /root/awx/{{ awx_domain }}-admin-secret.yaml
     mode: 0644
   run_once: True
 
 - name: Apply the admin secret
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: |
-    kubectl apply -f /root/awx/{{ awx_subdomain }}.{{ awx_base_domain }}-admin-secret.yaml
+    kubectl apply -f /root/awx/{{ awx_domain }}-admin-secret.yaml
   run_once: True
 
 #root@awx1:~# cat ./awxes/awx.perthchat2.org.yaml 
@@ -137,7 +137,7 @@
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.template:
     src: "{{ role_path }}/templates/awx.yaml.j2"
-    dest: /root/awx/{{ awx_subdomain }}.{{ awx_base_domain }}.yaml
+    dest: /root/awx/{{ awx_domain }}.yaml
     mode: 0644
   run_once: True
 
@@ -146,5 +146,5 @@
 - name: Apply the AWX manifest
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: |
-    kubectl apply -f /root/awx/{{ awx_subdomain }}.{{ awx_base_domain }}.yaml
+    kubectl apply -f /root/awx/{{ awx_domain }}.yaml
   run_once: True

@@ -17,8 +17,8 @@
   lineinfile:
     path: '~/.hosts'
     create: true
-    regexp: "^.*{{ rke2_subdomain }}.{{ awx_base_domain }}$"
-    line: "{{ server_ipv4 }} {{ rke2_subdomain }}.{{ awx_base_domain }}"
+    regexp: "^.*{{ rke2_subdomain }}.{{ awx_domain.split('.')[1:] | join('.') }}$"
+    line: "{{ server_ipv4 }} {{ rke2_subdomain }}.{{ awx_domain.split('.')[1:] | join('.') }}"
     mode: '0600'
     state: absent
   when: ansible_system == 'Linux'

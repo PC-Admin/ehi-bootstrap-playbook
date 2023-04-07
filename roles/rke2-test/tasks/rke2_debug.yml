@@ -101,7 +101,7 @@
 - name: Label the additional nodes as worker
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.shell:
-    cmd: kubectl label node {{ rke2_subdomain }}.{{ awx_base_domain }} node-role.kubernetes.io/worker=worker --overwrite
+    cmd: kubectl label node {{ rke2_subdomain }}.{{ awx_domain.split('.')[1:] | join('.') }} node-role.kubernetes.io/worker=worker --overwrite
     executable: /bin/bash
   when: rke2_type == 'agent'
   tags: [ 'never', 'rke2-setup' ]

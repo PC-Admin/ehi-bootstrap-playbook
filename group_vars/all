@@ -2,17 +2,17 @@
 haproxy_nodes: [ 'haproxy01.example.org', 'haproxy02.example.org', 'haproxy03.example.org' ]
 
 # RKE2 Variables
-rke2_load_balancer: leader.example.org
-rke2_bootstrap_node: awx1.example.org
-rke2_version: v1.24.11+rke2r1
+rke2_load_balancer: leader.example.org		# The domain name of the HAProxy load-balancer that's in-front of RKE2/AWX
+rke2_bootstrap_node: rke2-01.example.org	# The initial RKE2 node that will bootstrap the RKE2 deployment
+rke2_version: v1.24.11+rke2r1			# Rancher doesn't support 1.25 yet..
 
 # Proxmox User/Token Variables
 proxmox_user: "root@pam"
 proxmox_token_id: "Example Token ID"
 proxmox_token_secret: << Proxmox Token Secret >>
-proxmox_method: "clone" # 'clone' or 'lxc'
-number_of_volumes: 2
-volume_size: 25
+proxmox_method: "clone" 			# 'clone' or 'lxc', note that lxc mode is currently broken
+number_of_volumes: 2				# The number of block storage devices to spawn on Proxmox and connect automatically
+volume_size: 25					# The size of these block storage devices in GB
 
 # Rancher Variables
 rancher_admin_password: << Strong user defined password >>
@@ -22,17 +22,14 @@ rancher_url: rancher.example.org
 cert_manager_version: "v1.11.0"
 
 # AWX Variables
-awx_subdomain: awx
-awx_base_domain: example.org
+awx_domain: awx.example.org			# The domain for AWX
 awx_admin_username: "admin"
 awx_admin_password: << Strong user defined password >>
 awx_admin_email: "admin@example.org"
-awx_version: "21.14.0"
-awx_operator_version: "1.4.0"
-kustomize_version: "v5.0.1"
-validate_certs: False
-deploy_source: "https://github.com/application-research/ehi-bootstrap-playbook.git"
-deploy_branch: "main"
+deploy_source: "https://github.com/application-research/ehi-bootstrap-playbook.git"	# The repository for this playbook itself
+deploy_branch: "main"									
+
+# AWX Resources Repository Variables
 awx_deploy_source: "https://github.com/application-research/ehi-bootstrap-playbook.git"
 awx_deploy_branch: "main"
 awx_resources_source: "git@github.com:application-research/ehi-awx-resources.git"
