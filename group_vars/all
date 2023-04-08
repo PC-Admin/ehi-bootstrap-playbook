@@ -30,12 +30,17 @@ deploy_source: "https://github.com/application-research/ehi-bootstrap-playbook.g
 deploy_branch: "main"									
 
 # AWX Resources Repository Variables
-awx_deploy_source: "https://github.com/application-research/ehi-bootstrap-playbook.git"
+awx_deploy_source: "git@github.com:application-research/ehi-bootstrap-playbook.git"
 awx_deploy_branch: "main"
 awx_resources_source: "git@github.com:application-research/ehi-awx-resources.git"
 awx_resources_branch: "main"
 awx_resources_deploy_key: "~/.ssh/awx-git-key"
 awx_resources_git_username: "PC-Admin"
+awx_resources_schedule_start: '20210101T000000'
+awx_resources_schedule_frequency: 'WEEKLY'
+awx_resources_schedule_interval: 1
+awx_timezone: 'America/Chicago'
+validate_certs: False
 
 # SSH Variables (For DigitalOcean)
 ssh_key_file_private: ~/.ssh/testing_2022
