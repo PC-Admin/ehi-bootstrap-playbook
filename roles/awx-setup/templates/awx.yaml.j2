@@ -2,7 +2,7 @@
 apiVersion: awx.ansible.com/v1beta1
 kind: AWX
 metadata:
-  name: awx-perthchat2
+  name: {{ awx_domain.replace('.', '-') }}
   namespace: awx
 spec:
   admin_user: {{ awx_admin_username }}

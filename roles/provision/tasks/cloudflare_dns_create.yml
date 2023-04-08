@@ -27,11 +27,11 @@
     zone: "{{ awx_domain.split('.')[1:] | join('.') }}"
     record: "{{ rke2_load_balancer | regex_replace('(\\.)(.*)$', '') }}"
     type: A
-    value: '{{ rke2_api_ip }}'
+    value: '{{ load_balancer_ip }}'
     account_email: '{{ cloudflare_email }}'
     account_api_token: '{{ cloudflare_api_token }}'
     state: present
-  when: ( rke2_api_ip | length > 0 )
+  when: ( load_balancer_ip | length > 0 )
   register: lb_record_ipv4
   run_once: True
 
@@ -39,7 +39,7 @@
   delegate_to: 127.0.0.1
   ansible.builtin.debug:
     msg: Load Balancer Record IPv4 - {{ lb_record_ipv4 }}
-  when: ( rke2_api_ip | length > 0 )
+  when: ( load_balancer_ip | length > 0 )
   run_once: True
 
 - name: Create an A record for Rancher
@@ -48,11 +48,11 @@
     zone: "{{ awx_domain.split('.')[1:] | join('.') }}"
     record: "rancher"
     type: A
-    value: '{{ rke2_api_ip }}'
+    value: '{{ load_balancer_ip }}'
     account_email: '{{ cloudflare_email }}'
     account_api_token: '{{ cloudflare_api_token }}'
     state: present
-  when: ( rke2_api_ip | length > 0 )
+  when: ( load_balancer_ip | length > 0 )
   run_once: True
 
 - name: Create an A record for AWX
@@ -61,9 +61,9 @@
     zone: "{{ awx_domain.split('.')[1:] | join('.') }}"
     record: "{{ awx_domain.split('.')[0] }}"
     type: A
-    value: '{{ rke2_api_ip }}'
+    value: '{{ load_balancer_ip }}'
     account_email: '{{ cloudflare_email }}'
     account_api_token: '{{ cloudflare_api_token }}'
     state: present
-  when: ( rke2_api_ip | length > 0 )
+  when: ( load_balancer_ip | length > 0 )
   run_once: True

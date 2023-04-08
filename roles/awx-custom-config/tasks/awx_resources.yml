@@ -114,9 +114,18 @@
     #instance_groups: ["AWX Server (Custom Runner)"]
     job_tags: 'setup-all'
     credentials: [ "AWX Vault Secret" ]
-    extra_vars:
-      awx_url: "{{ awx_domain }}"
-      awx_token: "{{ awx_oauth_token }}"
+    extra_vars: {
+      awx_url: "{{ awx_url }}",
+      awx_token: "{{ awx_oauth_token }}",
+      awx_org_name: "{{ awx_org_name }}",
+      awx_resources_source: "{{ awx_resources_source }}",
+      awx_resources_branch: "{{ awx_resources_branch }}",
+      awx_resources_schedule_start: "{{ awx_resources_schedule_start }}",
+      awx_resources_schedule_frequency: "{{ awx_resources_schedule_frequency }}",
+      awx_resources_schedule_interval: "{{ awx_resources_schedule_interval }}",
+      awx_timezone: "{{ awx_timezone }}",
+      validate_certs: "{{ validate_certs }}"
+      }
     state: present
     verbosity: 1
     controller_host: "https://{{ awx_domain }}"

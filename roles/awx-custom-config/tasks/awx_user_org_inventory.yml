@@ -76,7 +76,7 @@
   delegate_to: 127.0.0.1
   awx.awx.settings:
     name: "AWX_ROLES_ENABLED"
-    value: true
+    value: 'true'
     controller_host: "https://{{ awx_domain }}"
     controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"
@@ -86,7 +86,7 @@
   delegate_to: 127.0.0.1
   awx.awx.settings:
     name: "AWX_COLLECTIONS_ENABLED"
-    value: true
+    value: 'true'
     controller_host: "https://{{ awx_domain }}"
     controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"

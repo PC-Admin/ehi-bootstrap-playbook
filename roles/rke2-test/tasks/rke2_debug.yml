@@ -39,17 +39,17 @@
   ignore_errors: True
   tags: [ 'never', 'rke2-setup' ]
 
-# Print rke2_api_ip variable
+# Print load_balancer_ip variable
 
-- name: Print rke2_api_ip variable
+- name: Print load_balancer_ip variable
   debug:
-    msg: "rke2_api_ip: {{ rke2_api_ip }}"
+    msg: "load_balancer_ip: {{ load_balancer_ip }}"
   ignore_errors: True
   tags: [ 'never', 'rke2-setup' ]
 
 # Print rke2_token variable
 
-- name: Print rke2_api_ip variable
+- name: Print load_balancer_ip variable
   debug:
     msg: "rke2_token: {{ rke2_token }}"
   ignore_errors: True
@@ -86,6 +86,14 @@
 
 # copy the kubeconfig to the root user's home directory
 # root@awx1:~# cat ~/.kube/config
+
+- name: On RKE2 server nodes, ensure that the /root/.kube directory exists
+  ansible.builtin.file:
+    path: /root/.kube
+    state: directory
+    mode: 0700
+  when: rke2_type == 'server'
+  tags: [ 'never', 'rke2-setup' ]
 
 - name: On RKE2 server nodes, copy the kubeconfig to root user's home directory
   ansible.builtin.copy:
