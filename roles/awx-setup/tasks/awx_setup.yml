@@ -104,19 +104,6 @@
     mode: 0755
   run_once: True
 
-#Save this as awx.perthchat2.org-admin-secret.yml
-#
-#---
-#apiVersion: v1
-#kind: Secret
-#metadata:
-#  name: awx-perthchat2-admin-secret
-#  namespace: awx
-#stringData:
-#  password: {{ awx_admin_password }}
-#
-#Apply with kubectl apply -f awx.perthchat2.org-admin-secret.yml
-
 - name: Template the admin secret
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.template:
@@ -131,7 +118,7 @@
     kubectl apply -f /root/awx/{{ awx_domain }}-admin-secret.yaml
   run_once: True
 
-#root@awx1:~# cat ./awxes/awx.perthchat2.org.yaml 
+#root@awx1:~# cat ./awxes/awx.example.org.yaml 
 
 - name: Template the AWX manifest
   delegate_to: "{{ rke2_bootstrap_node }}"
@@ -141,7 +128,7 @@
     mode: 0644
   run_once: True
 
-# kubectl apply -f awx.perthchat2.org.yaml
+# kubectl apply -f awx.example.org.yaml
 
 - name: Apply the AWX manifest
   delegate_to: "{{ rke2_bootstrap_node }}"

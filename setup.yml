@@ -3,6 +3,7 @@
 - name: "Setup for a HA AWX system on a RKE2 K8s cluster."
   hosts: "{{ 'k8s_cluster' }}"
   gather_facts: no
+  #become: true     # breaks local execution like in configure-awx role... 
 
   roles:
     - provision

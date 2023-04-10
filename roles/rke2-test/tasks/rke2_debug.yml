@@ -39,32 +39,15 @@
   ignore_errors: True
   tags: [ 'never', 'rke2-setup' ]
 
-# Print load_balancer_ip variable
+# Print load_balancer_ip_internal variable
 
-- name: Print load_balancer_ip variable
+- name: Print load_balancer_ip_internal variable
   debug:
-    msg: "load_balancer_ip: {{ load_balancer_ip }}"
+    msg: "load_balancer_ip_internal: {{ load_balancer_ip_internal }}"
   ignore_errors: True
   tags: [ 'never', 'rke2-setup' ]
 
 # Print rke2_token variable
-
-- name: Print load_balancer_ip variable
-  debug:
-    msg: "rke2_token: {{ rke2_token }}"
-  ignore_errors: True
-  tags: [ 'never', 'rke2-setup' ]
-
-# strangely doesn't work...
-
-#- name: Setup bash aliases on RKE2 server nodes
-#  ansible.builtin.lineinfile:
-#    path: /root/.bash_aliases
-#    create: yes
-#    line: "alias kubectl=/var/lib/rancher/rke2/bin/kubectl"
-#    mode: '0644'
-#  when: rke2_type == 'server'
-#  tags: [ 'never', 'rke2-setup' ]
 
 - name: Set path to RKE2 binaries in PATH on RKE2 server nodes
   lineinfile:

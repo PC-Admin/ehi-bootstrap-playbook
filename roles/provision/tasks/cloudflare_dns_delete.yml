@@ -23,7 +23,7 @@
     account_email: '{{ cloudflare_email }}'
     account_api_token: '{{ cloudflare_api_token }}'
     state: absent
-  when: ( load_balancer_ip | length > 0 )
+  when: ( load_balancer_ip_external | length > 0 )
   run_once: True
   ignore_errors: true
 
@@ -36,7 +36,7 @@
     account_email: '{{ cloudflare_email }}'
     account_api_token: '{{ cloudflare_api_token }}'
     state: absent
-  when: ( load_balancer_ip | length > 0 )
+  when: ( load_balancer_ip_external | length > 0 )
   run_once: True
   ignore_errors: true
 
@@ -49,5 +49,5 @@
     account_email: '{{ cloudflare_email }}'
     account_api_token: '{{ cloudflare_api_token }}'
     state: absent
-  when: ( load_balancer_ip | length > 0 )
+  when: ( load_balancer_ip_external | length > 0 )
   run_once: True

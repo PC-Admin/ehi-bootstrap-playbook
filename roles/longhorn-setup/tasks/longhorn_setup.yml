@@ -96,9 +96,14 @@
   register: partition_status
   loop: "{{ range(2, (number_of_volumes | int) + 2) | list }}"
   failed_when: false
-  when: rke2_type == "agent"
+  when: ( rke2_type == "agent" ) or ( worker_nodes | length == 0 )
   changed_when: false
   check_mode: no
+
+#- name: Define a no_partition string
+#  set_fact:
+#    no_partition: "Error: No partition table found on device"
+#  when: ( rke2_type == "agent" ) or ( worker_nodes | length == 0 )
 
 - name: Create partitions on extra disks
   ansible.builtin.parted:
@@ -106,16 +111,16 @@
     number: 1
     state: present
   loop: "{{ partition_status.results }}"
-  when:
-    - rke2_type == "agent"
-    - "'Error: No partition table found on device' in item.stdout"
+  #when: ( rke2_type == "agent" ) or ( worker_nodes | length == 0 ) or ( no_partition in item.stdout )
+  when: ( ( rke2_type == "agent" ) or ( worker_nodes | length == 0 ) ) and ('loop' not in item.stdout) 
+  ignore_errors: True
 
 - name: Create mount directories
   ansible.builtin.file:
     path: "/mnt/longhorn-bricks/brick{{ item }}"
     state: directory
   loop: "{{ range(1, number_of_volumes + 1)|list }}"
-  when: rke2_type == "agent"
+  when: ( rke2_type == "agent" ) or ( worker_nodes | length == 0 )
 
 - name: Add prerequisite XFS packages
   ansible.builtin.package:
@@ -123,7 +128,7 @@
       - xfsprogs
   register: package_status
   until: package_status is success
-  when: rke2_type == "agent"
+  when: ( rke2_type == "agent" ) or ( worker_nodes | length == 0 )
   delay: 6
   retries: 10
 
@@ -132,7 +137,7 @@
     dev: "/dev/vd{{ (item + 1) | to_letter }}"
     fstype: xfs
   loop: "{{ range(1, (number_of_volumes | int) + 1) | list }}"
-  when: rke2_type == "agent"
+  when: ( rke2_type == "agent" ) or ( worker_nodes | length == 0 )
 
 - name: Mount xfs partitions
   ansible.builtin.mount:
@@ -141,12 +146,12 @@
     fstype: xfs
     state: mounted
   loop: "{{ range(1, (number_of_volumes | int) + 1) | list }}"
-  when: rke2_type == "agent"
+  when: ( rke2_type == "agent" ) or ( worker_nodes | length == 0 )
 
 - name: Set longhorn_mounts variable
   set_fact:
     longhorn_mounts: "{{ range(1, (number_of_volumes | int) + 1) | list | map('regex_replace', '^(.*)$', 'storage\\1:/mnt/longhorn-bricks/brick\\1') | join(',') }}"
-  when: rke2_type == "agent"
+  when: ( rke2_type == "agent" ) or ( worker_nodes | length == 0 )
 
 - name: Configure Longhorn storage
   delegate_to: "{{ rke2_bootstrap_node }}"
@@ -155,24 +160,24 @@
       -o jsonpath='{.metadata.annotations}' \
       --overwrite \
       longhorn.io/node={{ longhorn_mounts | join('') }}
-  when: rke2_type == "agent"
+  when: ( rke2_type == "agent" ) or ( worker_nodes | length == 0 )
   register: longhorn_storage_config
 
 - name: DEBUG - Longhorn storage configuration
   ansible.builtin.debug:
     msg: "{{ longhorn_storage_config.stdout_lines }}"
-  when: rke2_type == "agent"
+  when: ( rke2_type == "agent" ) or ( worker_nodes | length == 0 )
 
-# kubectl -n longhorn-system get nodes awx4.perthchat2.org awx5.perthchat2.org -o jsonpath='{.items[*].metadata.annotations.longhorn\.io/node}'
+# kubectl -n longhorn-system get nodes awx4.example.org awx5.example.org -o jsonpath='{.items[*].metadata.annotations.longhorn\.io/node}'
 
 - name: Examine the Longhorn_mounts
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.shell: |
     kubectl -n longhorn-system get nodes {{ inventory_hostname }} -o jsonpath='{.items[*].metadata.annotations.longhorn\.io/node}'
-  when: rke2_type == "agent"
+  when: ( rke2_type == "agent" ) or ( worker_nodes | length == 0 )
   register: longhorn_mounts_check
 
 - name: DEBUG - Longhorn mounts
   ansible.builtin.debug:
     msg: "{{ longhorn_mounts_check.stdout_lines }}"
-  when: rke2_type == "agent"
+  when: ( rke2_type == "agent" ) or ( worker_nodes | length == 0 )

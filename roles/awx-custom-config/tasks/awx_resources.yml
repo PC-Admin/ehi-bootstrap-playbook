@@ -115,19 +115,28 @@
     job_tags: 'setup-all'
     credentials: [ "AWX Vault Secret" ]
     extra_vars: {
-      awx_url: "{{ awx_url }}",
-      awx_token: "{{ awx_oauth_token }}",
-      awx_org_name: "{{ awx_org_name }}",
-      awx_resources_source: "{{ awx_resources_source }}",
-      awx_resources_branch: "{{ awx_resources_branch }}",
-      awx_resources_schedule_start: "{{ awx_resources_schedule_start }}",
-      awx_resources_schedule_frequency: "{{ awx_resources_schedule_frequency }}",
-      awx_resources_schedule_interval: "{{ awx_resources_schedule_interval }}",
-      awx_timezone: "{{ awx_timezone }}",
-      validate_certs: "{{ validate_certs }}"
+      awx_token: "{{ awx_oauth_token }}"
       }
     state: present
     verbosity: 1
+    controller_host: "https://{{ awx_domain }}"
+    controller_oauthtoken: "{{ awx_oauth_token }}"
+    validate_certs: "{{ validate_certs }}"
+  run_once: true
+
+- name: Create an rrule string for the 'AWX Deploy Resources' schedule
+  set_fact:
+    rrule_line_update: "DTSTART;TZID={{ awx_timezone }}:{{ awx_resources_schedule_start }} RRULE:FREQ={{ awx_resources_schedule_frequency }};INTERVAL={{ awx_resources_schedule_interval }}"
+  run_once: true
+
+- name: Build a schedule for 'AWX Deploy Resources' job template
+  awx.awx.schedule:
+    name: "AWX Deploy Resources"
+    enabled: yes
+    state: present
+    unified_job_template: "AWX Deploy Resources"
+    #extra_data: "{{ lookup('file', '{{ role_path }}/extra-vars/awx_resources.json') }}"
+    rrule: "{{ rrule_line_update }}"
     controller_host: "https://{{ awx_domain }}"
     controller_oauthtoken: "{{ awx_oauth_token }}"
     validate_certs: "{{ validate_certs }}"

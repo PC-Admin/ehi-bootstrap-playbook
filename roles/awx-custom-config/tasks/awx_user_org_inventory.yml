@@ -62,7 +62,7 @@
     validate_certs: "{{ validate_certs }}"
   run_once: true
 
-- name: Update the default Instance Group with custom host aliases
+- name: Update the default Instance Group with custom host alias for load balancers internal IP
   delegate_to: 127.0.0.1
   awx.awx.instance_group:
     name: default
@@ -81,7 +81,7 @@
         hostAliases:
         - hostnames:
           - {{ awx_domain }}
-          ip: {{ load_balancer_ip }}
+          ip: {{ load_balancer_ip_internal }}
         containers:
           - image: quay.io/ansible/awx-ee:latest
             name: worker
