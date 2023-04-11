@@ -24,18 +24,20 @@
 
 # also need to ensure "cattle-fleet-system" and "cattle-global-data" namespaces exist
 
-- name: Check if the cattle-fleet-system namespace exists
-  delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: kubectl get namespace cattle-fleet-system
-  run_once: True
-  register: cattle_fleet_system_namespace_check
-  ignore_errors: True
+# Wings: Actually we don't want cattle-fleet (Rancher Fleet) yet...
 
-- name: Create a namespace for cattle-fleet-system
-  delegate_to: "{{ rke2_bootstrap_node }}"
-  ansible.builtin.command: kubectl create namespace cattle-fleet-system
-  run_once: True
-  when: "cattle_fleet_system_namespace_check.rc != 0 and 'not found' in cattle_fleet_system_namespace_check.stderr"
+# - name: Check if the cattle-fleet-system namespace exists
+#   delegate_to: "{{ rke2_bootstrap_node }}"
+#   ansible.builtin.command: kubectl get namespace cattle-fleet-system
+#   run_once: True
+#   register: cattle_fleet_system_namespace_check
+#   ignore_errors: True
+
+# - name: Create a namespace for cattle-fleet-system
+#   delegate_to: "{{ rke2_bootstrap_node }}"
+#   ansible.builtin.command: kubectl create namespace cattle-fleet-system
+#   run_once: True
+#   when: "cattle_fleet_system_namespace_check.rc != 0 and 'not found' in cattle_fleet_system_namespace_check.stderr"
 
 - name: Check if the cattle-global-data namespace exists
   delegate_to: "{{ rke2_bootstrap_node }}"
@@ -79,7 +81,7 @@
       apiVersion: storage.k8s.io/v1
       kind: StorageClass
       metadata:
-        name: longhorn-rancher
+        name: longhorn
       provisioner: driver.longhorn.io
       parameters:
         numberOfReplicas: "3"
@@ -103,7 +105,7 @@
         accessModes:
           - ReadWriteOnce
         persistentVolumeReclaimPolicy: Delete
-        storageClassName: longhorn-rancher # Make sure this matches your Longhorn StorageClass name
+        storageClassName: longhorn # Make sure this matches your Longhorn StorageClass name
         csi:
           driver: driver.longhorn.io
           volumeHandle: rancher-pv # Unique identifier for the volume, make sure this matches the PV name
@@ -125,7 +127,7 @@
         resources:
           requests:
             storage: "{{ volume_size }}Gi" # Adjust the size as needed
-        storageClassName: longhorn-rancher # Make sure this matches your Longhorn StorageClass name
+        storageClassName: longhorn # Make sure this matches your Longhorn StorageClass name
         volumeName: rancher-pv # Specify the name of the PersistentVolume to use
   run_once: True
 
@@ -138,6 +140,14 @@
   run_once: True
   ignore_errors: True
 
+# helm install rancher rancher-stable/rancher 
+# --namespace cattle-system 
+# --set hostname=rancher.estuary.tech 
+# --set ingress.tls.source=secret 
+# --set bootstrapPassword=REDACTED 
+# --create-namespace
+# --set replicas=3
+
 - name: Install Rancher using Helm with a self-signed certificate (Stable Branch)
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: >-
@@ -146,7 +156,7 @@
     --set hostname={{ rancher_url }}
     --set ingress.tls.source=rancher
     --set persistence.enabled=true
-    --set persistence.storageClass=longhorn-rancher
+    --set persistence.storageClass=longhorn
     --set persistence.size={{ volume_size }}Gi
     --set persistence.existingClaim=rancher-pvc
     --set bootstrapPassword={{ rancher_admin_password }}

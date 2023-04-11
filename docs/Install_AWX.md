@@ -20,9 +20,18 @@ root@ubuntu:~# cat /etc/netplan/00-installer-config.yaml
 network:
   ethernets:
     ens18:
-      dhcp4: true
-      dhcp-identifier: mac
+      dhcp4: no
+      addresses:
+        - 10.1.0.65/16
+      routes:
+        - to: default
+          via: 10.1.0.1
+          metric: 100
+      nameservers:
+        addresses: [10.1.0.51, 10.1.0.52, 10.1.0.53]
+        search: ['estuary.tech']
   version: 2
+
 ```
   c) Also make sure that the Proxmox templates Processors 'Type' is set to 'host' in Proxmox. This ensures the extra amd64 CPU functions AWX needs are available.
 
