@@ -5,7 +5,7 @@ haproxy_nodes: [ 'haproxy01.example.org', 'haproxy02.example.org', 'haproxy03.ex
 rke2_load_balancer: leader.example.org		# The domain name of the HAProxy load-balancer that's in-front of RKE2/AWX
 rke2_bootstrap_node: rke2-01.example.org	# The initial RKE2 node that will bootstrap the RKE2 deployment
 rke2_version: v1.24.11+rke2r1			# Rancher doesn't support 1.25 yet..
-rke2_ha_mode_keepalived: false  # Stop stupid IP ganking
+rke2_ha_mode_keepalived: false			# Stop stupid IP ganking
 
 # Proxmox User/Token Varrke2_ha_mode_keepalived:iables
 proxmox_user: "root@pam"
