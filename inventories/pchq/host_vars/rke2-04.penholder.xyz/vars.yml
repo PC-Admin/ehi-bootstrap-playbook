@@ -1,0 +1,19 @@
+
+# RKE2 Settings
+rke2_subdomain: rke2-04
+rke2_type: agent
+rke2_download_kubeconf: true
+#rke2_server_node_taints:
+#  - 'CriticalAddonsOnly=true:NoExecute'
+
+# Proxmox Settings
+proxmox_host: "10.1.3.204"
+proxmox_node: "gastly"
+proxmox_template: "ubuntu22-template-64g-2"
+proxmox_storage: "Crucial_SSD"
+
+# Extra variables
+vmid: 111
+server_ipv4: 10.1.3.226
+server_ipv6: fe80::7457:14ff:feec:6669
+mac_address: ['00:00:00:00:00:00', '5a:2d:d5:fa:86:6a']

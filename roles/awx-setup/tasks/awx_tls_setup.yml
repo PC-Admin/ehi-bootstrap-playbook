@@ -1,9 +1,9 @@
 ---
 
-- name: Create /root/cert-manager directory
+- name: Create /root/cert-manager-awx directory
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.file:
-    path: /root/cert-manager
+    path: /root/cert-manager-awx
     state: directory
     mode: 0755
   run_once: True
@@ -12,7 +12,7 @@
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.template:
     src: "{{ role_path }}/templates/issuer.yaml.j2"
-    dest: /root/cert-manager/issuer.yaml
+    dest: /root/cert-manager-awx/issuer.yaml
     mode: 0644
   run_once: True
 
@@ -21,7 +21,7 @@
 - name: Deploy the Cert-Manager issuer
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: |
-    kubectl apply -f /root/cert-manager/issuer.yaml
+    kubectl apply -f /root/cert-manager-awx/issuer.yaml
   run_once: True
 
 # kubectl apply -f cloudflare.yaml --namespace=cert-manager.
@@ -30,14 +30,14 @@
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.template:
     src: "{{ role_path }}/templates/cloudflare.yaml.j2"
-    dest: /root/cert-manager/cloudflare.yaml
+    dest: /root/cert-manager-awx/cloudflare.yaml
     mode: 0644
   run_once: True
 
 - name: Deploy the Cloudflare manifest
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: |
-    kubectl apply -f /root/cert-manager/cloudflare.yaml --namespace=cert-manager
+    kubectl apply -f /root/cert-manager-awx/cloudflare.yaml --namespace=cert-manager
   run_once: True
 
 # Once you've got your manifest created, apply it with kubectl apply -f certificate.yaml
@@ -46,7 +46,7 @@
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.template:
     src: "{{ role_path }}/templates/certificate.yaml.j2"
-    dest: /root/cert-manager/certificate.yaml
+    dest: /root/cert-manager-awx/certificate.yaml
     mode: 0644
   run_once: True
 
@@ -60,7 +60,7 @@
 - name: Deploy the Cert-Manager certificate
   delegate_to: "{{ rke2_bootstrap_node }}"
   ansible.builtin.command: |
-    kubectl apply -f /root/cert-manager/certificate.yaml
+    kubectl apply -f /root/cert-manager-awx/certificate.yaml
   run_once: True
 
 # You can run kubectl get certificates to see your certificate request, and kubectl describe certificates to see what state it's in.

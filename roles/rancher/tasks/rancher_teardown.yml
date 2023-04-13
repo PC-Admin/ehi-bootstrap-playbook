@@ -1,0 +1,64 @@
+---
+
+- name: Ensure /root/rancher-cleanup/ directory exists
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.file:
+    path: /root/rancher-cleanup/
+    state: directory
+    mode: 0755
+  run_once: True
+
+# https://github.com/rancher/rancher-cleanup.git
+
+- name: Clone the rancher-cleanup repo to /root/rancher-cleanup/
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.git:
+    repo: https://github.com/rancher/rancher-cleanup.git
+    dest: /root/rancher-cleanup/
+    version: main
+  run_once: True
+
+# kubectl create -f deploy/rancher-cleanup.yaml
+
+- name: Run the rancher-cleanup Kubernetes job
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: kubectl create -f /root/rancher-cleanup/deploy/rancher-cleanup.yaml
+  run_once: True
+
+# Watch logs using `$ kubectl -n kube-system logs -l job-name=cleanup-job -f``
+
+# root@rke2-01:~# kubectl -n kube-system logs -l job-name=cleanup-job -f
+# + timeout 21 sh -c 'kubectl delete --ignore-not-found=true --grace-period=15 --timeout=20s customresourcedefinition.apiextensions.k8s.io/vmwarevspheremachines.rke-machine.cattle.io'
+# customresourcedefinition.apiextensions.k8s.io "vmwarevspheremachines.rke-machine.cattle.io" deleted
+# + break
+# + for CRD in $(kubectl get crd -o name | grep cattle\.io | grep -v helm\.cattle\.io | grep -v k3s\.cattle\.io)
+# + kcd customresourcedefinition.apiextensions.k8s.io/vmwarevspheremachinetemplates.rke-machine.cattle.io
+# + i=0
+# + '[' 0 -lt 4 ']'
+# + timeout 21 sh -c 'kubectl delete --ignore-not-found=true --grace-period=15 --timeout=20s customresourcedefinition.apiextensions.k8s.io/vmwarevspheremachinetemplates.rke-machine.cattle.io'
+# customresourcedefinition.apiextensions.k8s.io "vmwarevspheremachinetemplates.rke-machine.cattle.io" deleted
+# + break
+
+- name: Define cleanup_job_complete string
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.set_fact:
+    cleanup_job_complete: 'customresourcedefinition.apiextensions.k8s.io "vmwarevspheremachinetemplates.rke-machine.cattle.io" deleted'
+  run_once: True
+
+- name: Verify that the rancher-cleanup job is complete
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: kubectl -n kube-system logs -l job-name=cleanup-job -f
+  register: rancher_cleanup_job
+  until: rancher_cleanup_job.stdout.find(cleanup_job_complete) != -1
+  retries: 30
+  delay: 10
+  run_once: True
+
+# root@rke2-01:~# kubectl delete -f /root/rancher-cleanup/deploy/rancher-cleanup.yaml
+
+- name: Delete Rancher cleanup jobs 
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: kubectl delete -f /root/rancher-cleanup/deploy/rancher-cleanup.yaml
+  run_once: True
+  async: 20
+  poll: 0

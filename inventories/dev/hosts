@@ -1,0 +1,16 @@
+
+[masters]
+dev-ebi-k8s-m01.estuary.tech ansible_host=dev-ebi-k8s-m01.estuary.tech
+dev-ebi-k8s-m02.estuary.tech ansible_host=dev-ebi-k8s-m02.estuary.tech
+dev-ebi-k8s-m03.estuary.tech ansible_host=dev-ebi-k8s-m03.estuary.tech
+
+[workers]
+
+[k8s_cluster:children]
+masters
+workers
+
+[haproxy]
+dev-haproxy01 ansible_host=dev-haproxy01 ansible_ssh_user=wings
+dev-haproxy02 ansible_host=dev-haproxy02 ansible_ssh_user=wings
+dev-haproxy03 ansible_host=dev-haproxy03 ansible_ssh_user=wings

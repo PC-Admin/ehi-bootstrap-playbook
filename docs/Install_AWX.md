@@ -6,86 +6,22 @@ How to install this clustered AWX setup.
 
 ## Provision the Servers
 
-Provision at least 3 Ubuntu 22.04 servers with >=32GB RAM, swap disabled and at least 64GB of disk space in the root partition, then setup SSH access to each servers root account, these will be our RKE2/AWX servers.
-
-Alternatively you can provision these servers and configure the DNS automatically using Proxmox and Cloudflare (for the DNS) by:
-1) Save a VM template on Proxmox for an Ubuntu 22.04 with enough CPU/RAM and disk space. 
-
-  a)Ensure the SSH key in [/group_vars/all.yml](/group_vars/all.yml) can be used to connect to the root account of this machine. 
-
-  b) Also ensure the 'dhcp-identifier' line is added to the following file:
-```
-root@ubuntu:~# cat /etc/netplan/00-installer-config.yaml
-# This is the network config written by 'subiquity'
-network:
-  ethernets:
-    ens18:
-      dhcp4: no
-      addresses:
-        - 10.1.0.65/16
-      routes:
-        - to: default
-          via: 10.1.0.1
-          metric: 100
-      nameservers:
-        addresses: [10.1.0.51, 10.1.0.52, 10.1.0.53]
-        search: ['estuary.tech']
-  version: 2
-
-```
-  c) Also make sure that the Proxmox templates Processors 'Type' is set to 'host' in Proxmox. This ensures the extra amd64 CPU functions AWX needs are available.
-
-2) Ensure the following variables are filled out in each hosts vars.yml file:
-```
-# Proxmox Settings
-proxmox_host: "10.1.1.150"      # the IP address of the target Proxmox node
-proxmox_node: "apollo"          # the hostname of the target Proxmox node
-proxmox_method: "clone"         # 'clone' or 'lxc'
-proxmox_template: "ubuntu22-8c-8g-32g"   # the name of your VM template
-proxmox_storage: "vm-storage"   # the Proxmox storage ID for the new VMs disk (eg: 'local-lvm')
-```
-
-3) Collect your CloudFlare API tokens for the DNS/Deployment:
-
-  a) Log in to your Cloudflare account and navigate to the API Tokens page: https://dash.cloudflare.com/profile/api-tokens.
-
-  b) Collect {{ cloudflare_api_token }} value from the 'Global API Key' section.
-
-  c) Create the {{ cloudflare_dns_token }} with the following permissions:
-
-    i) Select the 'Edit zone DNS' template.
-
-    ii) In the 'Permissions' section at the top, add 'Zone - DNS - Read' and 'Zone - DNS - Edit' as permissions.
-
-    iii) In 'Zone Resources' add an entry for 'Include - Specific zone - example.org' to limit the token to one domain.
-
-    iv) Set IP filtering or an expiry date if you wish.
-
-    v) Check 'Continue to summary'
-
-4) Run this playbook with the 'provision' tag like so:
-
-`$ ansible-playbook -v -i ./inventory/hosts -t "provision" setup.yml`
-
-After your finished you can delete these servers/records with the 'teardown' tag:
-
-`$ ansible-playbook -v -i ./inventory/hosts -t "teardown" setup.yml`
+Use MAAS and [ehi-cloudy-dreams](https://github.com/application-research/ehi-cloudy-dreams) to provision at least 3 control-plane servers and 0 to N worker nodes if you prefer to have seperate worker nodes.
 
 
 ## Setup DNS Entries for it
 
-1) A/AAAA record for awx1.example.org to the servers IP.
+1) A/AAAA records for awx.example.org and rancher.example.org pointing to the external IP of the load balancer (or use CNAME records for it pointing both of them to your load balancers A/AAAA record).
 
-2) optionally, an A/AAAA record for rancher.example.org to the servers IP, 
-    or a CNAME record for it pointing to awx.example.org.
+2) setup internal A/AAAA DNS records (or external if you need) for each RKE2 server, this is to ensure they can reach each other with the FQDN.
 
 
 ## Configure HAProxy
 
-First add new backend and frontend definitions to the /etc/haproxy/haproxy.cfg file on each haproxy host, you can see [an example of a haproxyconfig file in the docs](/docs/haproxy_example.cfg).
+First add new backend and frontend definitions to the /etc/haproxy/haproxy.cfg file on each haproxy host, you can see [a few examples of a haproxyconfig file in the docs](/docs/haproxy_example_1.cfg).
 
-Then reset the haproxy service:
-`$ sudo systemctl restart haproxy.service`
+Then reload the haproxy service:
+`$ sudo systemctl reload haproxy.service`
 
 Note: The other server nodes besides the bootstrap node are commented out, this is needed to deploy initially but once 3 of the server nodes are up you can include them here too.
 
@@ -101,14 +37,14 @@ $ ansible-galaxy collection install community.digitalocean
 ```
 
 
-2) Edit hosts into [./inventory/hosts](./inventory/hosts)
+2) Edit hosts into [./inventories/dev/hosts](./inventories/dev/hosts) or whatever specific inventory you want to use.
 
-Create folder for each host at: ./inventory/host_vars/
+Create folder for each host at: ./inventories/dev/host_vars/
 
-Record each hosts variables into each hosts ./inventory/host_vars/awx1.example.org/vars.yml file.
+Record each hosts variables into each hosts ./inventories/dev/host_vars/awx1.example.org/vars.yml file.
 
 
-3) Edit global variables in [./group_vars/all.yml](./group_vars/all.yml)
+3) Create a global variables file in ./group_vars/all.yml, you can see an example for this in  [./group_vars/all_example.yml](./group_vars/all_example.yml)
 
 
 4) Run the playbook with the following tags:

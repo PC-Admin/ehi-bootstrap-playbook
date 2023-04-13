@@ -12,6 +12,6 @@
       tags: rke2-setup
     - rke2-test
     - longhorn-setup
-    - rancher-setup
+    - rancher
     - awx-setup
     - awx-custom-config

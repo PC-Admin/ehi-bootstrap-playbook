@@ -1,0 +1,18 @@
+
+[masters]
+rke2-01.penholder.xyz ansible_host=rke2-01.penholder.xyz
+rke2-02.penholder.xyz ansible_host=rke2-02.penholder.xyz
+rke2-03.penholder.xyz ansible_host=rke2-03.penholder.xyz
+
+[workers]
+#rke2-04.penholder.xyz ansible_host=rke2-04.penholder.xyz ansible_ssh_user=pcadmin
+#rke2-05.penholder.xyz ansible_host=rke2-05.penholder.xyz ansible_ssh_user=pcadmin
+
+[k8s_cluster:children]
+masters
+workers
+
+[haproxy]
+haproxy01 ansible_host=haproxy01 ansible_ssh_user=wings
+haproxy02 ansible_host=haproxy02 ansible_ssh_user=wings
+haproxy03 ansible_host=haproxy03 ansible_ssh_user=wings

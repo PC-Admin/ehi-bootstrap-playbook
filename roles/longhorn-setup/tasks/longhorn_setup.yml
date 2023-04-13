@@ -111,7 +111,6 @@
     number: 1
     state: present
   loop: "{{ partition_status.results }}"
-  #when: ( rke2_type == "agent" ) or ( worker_nodes | length == 0 ) or ( no_partition in item.stdout )
   when: ( ( rke2_type == "agent" ) or ( worker_nodes | length == 0 ) ) and ('loop' not in item.stdout) 
   ignore_errors: True
 
@@ -122,28 +121,18 @@
   loop: "{{ range(1, number_of_volumes + 1)|list }}"
   when: ( rke2_type == "agent" ) or ( worker_nodes | length == 0 )
 
-- name: Add prerequisite XFS packages
-  ansible.builtin.package:
-    pkg:
-      - xfsprogs
-  register: package_status
-  until: package_status is success
-  when: ( rke2_type == "agent" ) or ( worker_nodes | length == 0 )
-  delay: 6
-  retries: 10
-
-- name: Format XFS partitions
+- name: Format EXT4 partitions
   ansible.builtin.filesystem:
     dev: "/dev/vd{{ (item + 1) | to_letter }}"
-    fstype: xfs
+    fstype: ext4
   loop: "{{ range(1, (number_of_volumes | int) + 1) | list }}"
   when: ( rke2_type == "agent" ) or ( worker_nodes | length == 0 )
 
-- name: Mount xfs partitions
+- name: Mount ext4 file systems
   ansible.builtin.mount:
     path: "/mnt/longhorn-bricks/brick{{ item }}"
     src: "/dev/vd{{ (item + 1) | to_letter }}"
-    fstype: xfs
+    fstype: ext4
     state: mounted
   loop: "{{ range(1, (number_of_volumes | int) + 1) | list }}"
   when: ( rke2_type == "agent" ) or ( worker_nodes | length == 0 )

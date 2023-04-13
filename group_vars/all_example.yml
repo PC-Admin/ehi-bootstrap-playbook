@@ -58,4 +58,3 @@ letsencrypt_email: useremail@protonmail.com
 cloudflare_email: useremail@protonmail.com
 cloudflare_api_token: << Cloudflare Global API Key >>	# See 'Global API Key' at https://dash.cloudflare.com/profile/api-tokens
 cloudflare_dns_token: << Cloudflare API Token >>	# See 'API Tokens' at https://dash.cloudflare.com/profile/api-tokens
-

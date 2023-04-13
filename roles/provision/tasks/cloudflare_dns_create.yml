@@ -27,11 +27,11 @@
     zone: "{{ awx_domain.split('.')[1:] | join('.') }}"
     record: "{{ rke2_load_balancer | regex_replace('(\\.)(.*)$', '') }}"
     type: A
-    value: '{{ load_balancer_ip_external }}'
+    value: '{{ load_balancer_ip_internal }}'
     account_email: '{{ cloudflare_email }}'
     account_api_token: '{{ cloudflare_api_token }}'
     state: present
-  when: ( load_balancer_ip_external | length > 0 )
+  when: ( load_balancer_ip_internal | length > 0 )
   register: lb_record_ipv4
   run_once: True
 

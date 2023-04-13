@@ -1,0 +1,258 @@
+---
+
+## Install Rancher
+
+- name: Add the Rancher Helm repository
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
+  run_once: True
+
+## Create a namespace for Rancher:
+
+- name: Check if the Rancher namespace exists
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: kubectl get namespace cattle-system
+  run_once: True
+  register: rancher_namespace_check
+  ignore_errors: True
+
+- name: Create a namespace for Rancher
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: kubectl create namespace cattle-system
+  run_once: True
+  when: "rancher_namespace_check.rc != 0 and 'not found' in rancher_namespace_check.stderr"
+
+# also need to ensure "cattle-fleet-system" and "cattle-global-data" namespaces exist
+
+# Wings: Actually we don't want cattle-fleet (Rancher Fleet) yet...
+
+# - name: Check if the cattle-fleet-system namespace exists
+#   delegate_to: "{{ rke2_bootstrap_node }}"
+#   ansible.builtin.command: kubectl get namespace cattle-fleet-system
+#   run_once: True
+#   register: cattle_fleet_system_namespace_check
+#   ignore_errors: True
+
+# - name: Create a namespace for cattle-fleet-system
+#   delegate_to: "{{ rke2_bootstrap_node }}"
+#   ansible.builtin.command: kubectl create namespace cattle-fleet-system
+#   run_once: True
+#   when: "cattle_fleet_system_namespace_check.rc != 0 and 'not found' in cattle_fleet_system_namespace_check.stderr"
+
+- name: Check if the cattle-global-data namespace exists
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: kubectl get namespace cattle-global-data
+  run_once: True
+  register: cattle_global_data_namespace_check
+  ignore_errors: True
+
+- name: Create a namespace for cattle-global-data
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: kubectl create namespace cattle-global-data
+  run_once: True
+  when: "cattle_global_data_namespace_check.rc != 0 and 'not found' in cattle_global_data_namespace_check.stderr"
+
+## Install Perisistent Volume Claim for Rancher
+
+# - name: Add prerequisite python3-pip package to Bootstrap node
+#   delegate_to: "{{ rke2_bootstrap_node }}"
+#   ansible.builtin.package:
+#     pkg:
+#       - python3-pip
+#   register: package_status
+#   until: package_status is success
+#   run_once: True
+#   delay: 6
+#   retries: 10
+
+# - name: Install the required Kubernetes library
+#   delegate_to: "{{ rke2_bootstrap_node }}"
+#   ansible.builtin.pip:
+#     name: kubernetes
+#     state: present
+#   run_once: True
+
+#- name: Create a StorageClass for Rancher
+#  delegate_to: "{{ rke2_bootstrap_node }}"
+#  ansible.builtin.k8s:
+#    state: present
+#    namespace: cattle-system
+#    definition:
+#      apiVersion: storage.k8s.io/v1
+#      kind: StorageClass
+#      metadata:
+#        name: longhorn
+#      provisioner: driver.longhorn.io
+#      parameters:
+#        numberOfReplicas: "3"
+#        staleReplicaTimeout: "2880"
+#        fromBackup: "" # is this an avenue for a backup?
+#  run_once: True
+
+# - name: Create a PersistentVolume for Rancher
+#   delegate_to: "{{ rke2_bootstrap_node }}"
+#   ansible.builtin.k8s:
+#     state: present
+#     namespace: cattle-system
+#     definition:
+#       apiVersion: v1
+#       kind: PersistentVolume
+#       metadata:
+#         name: rancher-pv
+#       spec:
+#         capacity:
+#           storage: "{{ volume_size }}Gi" # Adjust the size as needed
+#         accessModes:
+#           - ReadWriteOnce
+#         persistentVolumeReclaimPolicy: Delete
+#         storageClassName: longhorn # Make sure this matches your Longhorn StorageClass name
+#         csi:
+#           driver: driver.longhorn.io
+#           volumeHandle: rancher-pv # Unique identifier for the volume, make sure this matches the PV name
+#   run_once: True
+
+# - name: Create PersistentVolumeClaim for Rancher
+#   delegate_to: "{{ rke2_bootstrap_node }}"
+#   ansible.builtin.k8s:
+#     state: present
+#     namespace: cattle-system
+#     definition:
+#       apiVersion: v1
+#       kind: PersistentVolumeClaim
+#       metadata:
+#         name: rancher-pvc
+#       spec:
+#         accessModes:
+#           - ReadWriteOnce
+#         resources:
+#           requests:
+#             storage: "{{ volume_size }}Gi" # Adjust the size as needed
+#         storageClassName: longhorn # Make sure this matches your Longhorn StorageClass name
+#         volumeName: rancher-pv # Specify the name of the PersistentVolume to use
+#   run_once: True
+
+## Install Rancher using Helm with a certificate from a Cloudflare DNS challenge
+
+- name: Create /root/cert-manager-rancher directory
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.file:
+    path: /root/cert-manager-rancher
+    state: directory
+    mode: 0755
+  run_once: True
+
+# Create Cloudflare secret
+# kubectl apply -f cloudflare.yaml --namespace=cert-manager
+
+- name: Template the cloudflare.yml file
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/cloudflare.yml.j2"
+    dest: /root/cert-manager-rancher/cloudflare.yml
+  run_once: True
+
+- name: Create the Cloudflare secret
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: kubectl apply -f /root/cert-manager-rancher/cloudflare.yml --namespace=cattle-system
+  run_once: True
+
+# Create a ClusterIssuer
+# kubectl apply -f issuer.yaml
+
+- name: Template the issuer.yml file
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/issuer.yml.j2"
+    dest: /root/cert-manager-rancher/issuer.yml
+  run_once: True
+
+- name: Create the ClusterIssuer
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: kubectl apply -f /root/cert-manager-rancher/issuer.yml
+  run_once: True
+
+# Request a certificate
+# kubectl apply -f certificate.yaml
+
+- name: Template the certificate.yml file
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/certificate.yml.j2"
+    dest: /root/cert-manager-rancher/certificate.yml
+  run_once: True
+
+- name: Request a certificate
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: kubectl apply -f /root/cert-manager-rancher/certificate.yml
+  run_once: True
+
+- name: Verify that the Cert-Manager certificate is ready
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: |
+    kubectl get certificates --namespace=cattle-system
+  register: certificate_state
+  run_once: True
+  retries: 6
+  delay: 10
+  until: "'True' in certificate_state.stdout"
+  ignore_errors: True
+
+- name: Check if Rancher is already installed
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: helm list --namespace cattle-system --filter "^rancher$"
+  register: rancher_helm_check
+  run_once: True
+  ignore_errors: True
+
+#  helm install rancher rancher-stable/rancher
+#  --namespace cattle-system
+#  --set hostname={{ rancher_url }}
+#  --set ingress.tls.source=rancher
+#  --set persistence.enabled=true
+#  --set persistence.storageClass=longhorn
+#  --set persistence.size={{ volume_size }}Gi
+#  --set persistence.existingClaim=rancher-pvc
+#  --set bootstrapPassword={{ rancher_admin_password }}
+#  --create-namespace
+
+- name: Install Rancher using Helm with the LetsEncrypt certificate (Stable Branch)
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: >-
+    helm install rancher rancher-stable/rancher 
+    --namespace cattle-system 
+    --set hostname=rancher.estuary.tech 
+    --set ingress.tls.source=secret 
+    --set bootstrapPassword={{ rancher_admin_password }} 
+    --create-namespace
+    --set replicas=3
+  environment:
+    KUBECONFIG: "/etc/rancher/rke2/rke2.yaml"
+  run_once: True
+  when: "'rancher' not in rancher_helm_check.stdout"
+
+## Verify the Rancher installation:
+
+#- name: Verify the Rancher installation
+#  delegate_to: "{{ rke2_bootstrap_node }}"
+#  ansible.builtin.command: kubectl get pods --namespace cattle-system
+#  register: rancher_status
+#  run_once: True
+
+#- name: Display Rancher output
+#  ansible.builtin.debug:
+#    msg: "{{ rancher_status.stdout_lines }}"
+#  run_once: True
+
+- name: Verify the Rancher installation
+  delegate_to: "{{ rke2_bootstrap_node }}"
+  ansible.builtin.command: kubectl get pods --namespace cattle-system
+  register: rancher_status
+  run_once: True
+  retries: 60  # Adjust the number of retries as needed
+  delay: 10  # Adjust the delay between retries as needed
+  until: rancher_status.stdout | regex_findall('Running') | length >= 4
+
+- name: Display Rancher output
+  ansible.builtin.debug:
+    msg: "{{ rancher_status.stdout_lines }}"
+  run_once: True

@@ -7,3 +7,7 @@
 # Rancher Setup
 - import_tasks: "{{ role_path }}/tasks/rancher_setup.yml"
   tags: [ 'never', 'rancher-setup' ]
+
+# Rancher Teardown
+- import_tasks: "{{ role_path }}/tasks/rancher_teardown.yml"
+  tags: [ 'never', 'rancher-teardown' ]
