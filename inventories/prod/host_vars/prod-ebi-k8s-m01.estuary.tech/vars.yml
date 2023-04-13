@@ -1,0 +1,19 @@
+
+# RKE2 Settings
+rke2_subdomain: prod-ebi-k8s-m01
+rke2_ha_mode: true
+rke2_type: server
+rke2_download_kubeconf: true
+#rke2_server_node_taints:
+#  - 'CriticalAddonsOnly=true:NoExecute'
+
+# Proxmox Settings
+proxmox_host: "10.24.0.204"
+proxmox_node: "altair"
+proxmox_template: "ubuntu22-template-64g-1"
+proxmox_storage: "vm-storage"
+
+# Extra variables
+server_ipv4: 10.24.0.11
+server_ipv6: 10.24.0.2
+vmid: 115

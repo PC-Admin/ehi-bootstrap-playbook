@@ -1,0 +1,19 @@
+
+# RKE2 Settings
+rke2_subdomain: prod-ebi-k8s-m02
+rke2_ha_mode: true
+rke2_type: server
+rke2_download_kubeconf: true
+#rke2_server_node_taints:
+#  - 'CriticalAddonsOnly=true:NoExecute'
+
+# Proxmox Settings
+proxmox_host: "10.24.0.208"
+proxmox_node: "apollo"
+proxmox_template: "ubuntu22-template-64g-2"
+proxmox_storage: "vm-storage"
+
+# Extra variables
+server_ipv4: fe80::ecee:eeff:feee:eeee
+server_ipv6: fe80::7044:aaff:fe9d:969b
+vmid: 116

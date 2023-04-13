@@ -1,0 +1,12 @@
+
+[masters]
+prod-ebi-k8s-m01.estuary.tech ansible_host=prod-ebi-k8s-m01.estuary.tech ansible_ssh_user=root
+prod-ebi-k8s-m02.estuary.tech ansible_host=prod-ebi-k8s-m02.estuary.tech ansible_ssh_user=root
+prod-ebi-k8s-m03.estuary.tech ansible_host=prod-ebi-k8s-m03.estuary.tech ansible_ssh_user=root
+
+[workers]
+
+
+[k8s_cluster:children]
+masters
+workers
