@@ -2,11 +2,11 @@
 
 - name: Gather facts about the controller system
   ansible.builtin.setup:
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
 
 - name: Add SSH config entry for host
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   ansible.builtin.blockinfile:
     path: "/home/{{ lookup('env', 'USER') }}/.ssh/config"
     marker_begin: "BEGIN SSH config entry for {{ rke2_subdomain }}.{{ awx_domain.split('.')[1:] | join('.') }}"
@@ -21,7 +21,7 @@
   when: ansible_system == 'Linux'
 
 - name: Add HOSTALIASES environment variable to ~/.profile
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   lineinfile:
     path: '~/.profile'
     create: true
@@ -32,7 +32,7 @@
   run_once: true
 
 - name: Add host entry to ~/.hosts file
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   lineinfile:
     path: '~/.hosts'
     create: true

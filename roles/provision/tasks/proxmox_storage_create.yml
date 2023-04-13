@@ -15,7 +15,7 @@
   run_once: True
 
 - name: Create new disks for each agent node in Proxmox (do not rewrite in case it exists already)
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   community.general.proxmox_disk:
     api_host: "{{ proxmox_host }}"
     api_user: "{{ proxmox_user }}"

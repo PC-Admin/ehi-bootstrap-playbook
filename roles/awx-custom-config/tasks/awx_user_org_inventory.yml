@@ -1,7 +1,7 @@
 ---
 
 - name: Create the admin organisation
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   awx.awx.organization:
     name: "{{ awx_org_name }}"
     description: "The main organisation that is used to manage other organisations."
@@ -13,7 +13,7 @@
   run_once: true
 
 - name: Add admin user to their organisation
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   awx.awx.role:
     user: "{{ awx_admin_username }}"
     organization: "{{ awx_org_name }}"
@@ -24,7 +24,7 @@
   run_once: true
 
 - name: Add Localhost inventory to the admins organisation
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   awx.awx.inventory:
     name: "Localhost"
     description: "An custom inventory for the AWX to dump it's backup to the host OS."
@@ -39,7 +39,7 @@
   run_once: true
 
 - name: Add localhost (ee) to the Localhost inventory
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   awx.awx.host:
     name: "localhost"
     description: "The AWX Server, running as localhost."
@@ -51,7 +51,7 @@
   run_once: true
 
 - name: Allow admin account to 'Use' the Localhost inventory
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   awx.awx.role:
     user: "{{ awx_admin_username }}"
     inventory: "Localhost"
@@ -63,7 +63,7 @@
   run_once: true
 
 - name: Update the default Instance Group with custom host alias for load balancers internal IP
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   awx.awx.instance_group:
     name: default
     state: present
@@ -99,7 +99,7 @@
   run_once: true
 
 - name: Set the value of TOWER_URL_BASE
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   awx.awx.settings:
     name: "TOWER_URL_BASE"
     value: "https://{{ awx_domain }}"
@@ -109,7 +109,7 @@
   run_once: true
 
 - name: Set the value of AWX_ROLES_ENABLED
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   awx.awx.settings:
     name: "AWX_ROLES_ENABLED"
     value: 'true'
@@ -119,7 +119,7 @@
   run_once: true
 
 - name: Set the value of AWX_COLLECTIONS_ENABLED
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   awx.awx.settings:
     name: "AWX_COLLECTIONS_ENABLED"
     value: 'true'

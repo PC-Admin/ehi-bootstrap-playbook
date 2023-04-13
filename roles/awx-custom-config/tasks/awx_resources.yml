@@ -8,7 +8,7 @@
   no_log: true
 
 - name: Create a Vault credential for AWX
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   awx.awx.credential:
     name: "AWX Vault Secret"
     description: "An AWX vault secret that unlocks encrypted variables."
@@ -24,7 +24,7 @@
   run_once: true 
 
 - name: Read private key for AWX Resources repository
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   ansible.builtin.slurp:
     src: "{{ awx_resources_deploy_key }}"
   register: awx_resources_deploy_key_content
@@ -32,7 +32,7 @@
   no_log: true
 
 - name: Add a SCM credential for the AWX Resources repository
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   awx.awx.credential:
     name: "AWX Resources SCM"
     description: "The SCM credential for the AWX Resources repository."
@@ -48,7 +48,7 @@
   run_once: true
 
 - name: Add 'AWX Ansible' project to AWX admins organisation
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   awx.awx.project:
     name: "AWX Ansible"
     description: "The playbook for this AWX setup."
@@ -65,7 +65,7 @@
   run_once: true
 
 - name: Update 'AWX Ansible' project
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   awx.awx.project_update:
     name: "AWX Ansible"
     timeout: 300
@@ -75,7 +75,7 @@
   run_once: true
 
 - name: Add 'AWX Resources' project to AWX admins organisation
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   awx.awx.project:
     name: "AWX Resources"
     description: "The external playbook for resources being setup on this AWX instance."
@@ -93,7 +93,7 @@
   run_once: true
 
 - name: Update 'AWX Resources' project
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   awx.awx.project_update:
     name: "AWX Resources"
     timeout: 300
@@ -103,7 +103,7 @@
   run_once: true
 
 - name: Create 'AWX Deploy Resources' job template
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   awx.awx.job_template:
     name: "AWX Deploy Resources"
     description: "Deploys EHI AWX Resources onto AWX."

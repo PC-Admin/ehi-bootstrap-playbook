@@ -1,7 +1,7 @@
 ---
 
 - name: Remove the default 'Demo Job Template'
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   awx.awx.job_template:
     name: "Demo Job Template"
     job_type: run
@@ -14,7 +14,7 @@
   run_once: true
 
 - name: Remove the default 'Demo Project'
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   awx.awx.project:
     name: "Demo Project"
     organization: "Default"
@@ -26,7 +26,7 @@
   run_once: true
 
 - name: Remove the default 'Demo Inventory'
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   awx.awx.inventory:
     name: "Demo Inventory"
     organization: "Default"
@@ -38,7 +38,7 @@
   run_once: true
 
 - name: Remove the default 'Demo Credential' credential
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   awx.awx.credential:
     name: "Demo Credential"
     user: "admin"
@@ -51,7 +51,7 @@
   run_once: true
 
 - name: Remove the default 'Default' organisation
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   awx.awx.organization:
     name: "Default"
     state: absent

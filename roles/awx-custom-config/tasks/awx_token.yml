@@ -1,7 +1,7 @@
 ---
 
 - name: Create a new AWX OAuth token using the admin username/password
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   awx.awx.token:
     description: |
         AWX Primary Token "{{ lookup('pipe', 'date +%Y-%m-%d@$H:%M:%S') }}"

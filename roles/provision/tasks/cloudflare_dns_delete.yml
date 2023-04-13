@@ -1,7 +1,7 @@
 ---
 
 - name: Remove A records that points to the servers IP
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   community.general.cloudflare_dns:
     zone: "{{ awx_domain.split('.')[1:] | join('.') }}"
     record: '{{ item }}'
@@ -15,7 +15,7 @@
   register: record_ipv4
 
 - name: Remove A record that points to the Load Balancer
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   community.general.cloudflare_dns:
     zone: "{{ awx_domain.split('.')[1:] | join('.') }}"
     record: "{{ rke2_load_balancer | regex_replace('(\\.)(.*)$', '') }}"
@@ -28,7 +28,7 @@
   ignore_errors: true
 
 - name: Remove A record for Rancher
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   community.general.cloudflare_dns:
     zone: "{{ awx_domain.split('.')[1:] | join('.') }}"
     record: "rancher"
@@ -41,7 +41,7 @@
   ignore_errors: true
 
 - name: Remove A record for AWX
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   community.general.cloudflare_dns:
     zone: "{{ awx_domain.split('.')[1:] | join('.') }}"
     record: "{{ awx_domain.split('.')[0] }}"

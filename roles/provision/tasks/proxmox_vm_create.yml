@@ -1,7 +1,7 @@
 ---
 
 - name: "Create a full clone of the template for each host (sequentially)"
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   community.general.proxmox_kvm:
     api_host: "{{ hostvars[item].proxmox_host }}"
     api_user: "{{ proxmox_user }}"
@@ -40,7 +40,7 @@
 #  ignore_errors: true
 
 - name: "Create LXC containers for each host (sequentially)"
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   community.general.proxmox:
     api_host: "{{ proxmox_host }}"
     api_user: "{{ proxmox_user }}"
@@ -80,7 +80,7 @@
   ignore_errors: true
 
 - name: Start the new VMs (sequentially)
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   community.general.proxmox_kvm:
     api_host: "{{ proxmox_host }}"
     api_user: "{{ proxmox_user }}"
@@ -109,7 +109,7 @@
   run_once: true
 
 - name: "Start LXC containers for each host (sequentially)"
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   community.general.proxmox:
     api_host: "{{ proxmox_host }}"
     api_user: "{{ proxmox_user }}"
@@ -175,7 +175,7 @@
 #  run_once: true
 
 - name: "Write IPv4 to each hosts inventory file"
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   ansible.builtin.lineinfile:
     path: './inventory/host_vars/{{ item.0 }}/vars.yml'
     regexp: "^#?server_ipv4:.*$"
@@ -187,7 +187,7 @@
   run_once: true
 
 - name: "Write IPv6 to each hosts inventory file"
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   ansible.builtin.lineinfile:
     path: './inventory/host_vars/{{ item.0 }}/vars.yml'
     regexp: "^#?server_ipv6:.*$"
@@ -217,7 +217,7 @@
   run_once: true
 
 - name: Add vmid line to each hosts inventory file
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   lineinfile:
     path: './inventory/host_vars/{{ item.0 }}/vars.yml'
     regexp: "^#?vmid:.*$"
@@ -229,7 +229,7 @@
   run_once: true
 
 - name: Add vmid line to each hosts inventory file
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   lineinfile:
     path: './inventory/host_vars/{{ item.0 }}/vars.yml'
     regexp: "^#?vmid:.*$"

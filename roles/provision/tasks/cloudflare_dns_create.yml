@@ -1,7 +1,7 @@
 ---
 
 - name: Create A records that points to the servers IP
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   community.general.cloudflare_dns:
     zone: "{{ awx_domain.split('.')[1:] | join('.') }}"
     record: '{{ item }}'
@@ -16,13 +16,13 @@
   ignore_errors: true
 
 - name: Print the new IPv4 DNS record
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   ansible.builtin.debug:
     msg: Record IPv4 - {{ record_ipv4 }}
   when: ( server_ipv4 | length > 0 )
 
 - name: Create an A record for the Load Balancer
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   community.general.cloudflare_dns:
     zone: "{{ awx_domain.split('.')[1:] | join('.') }}"
     record: "{{ rke2_load_balancer | regex_replace('(\\.)(.*)$', '') }}"
@@ -36,14 +36,14 @@
   run_once: True
 
 - name: Print the new Load Balancer IPv4 DNS record
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   ansible.builtin.debug:
     msg: Load Balancer Record IPv4 - {{ lb_record_ipv4 }}
   when: ( load_balancer_ip_external | length > 0 )
   run_once: True
 
 - name: Create an A record for Rancher
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   community.general.cloudflare_dns:
     zone: "{{ awx_domain.split('.')[1:] | join('.') }}"
     record: "rancher"
@@ -56,7 +56,7 @@
   run_once: True
 
 - name: Create an A record for AWX
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   community.general.cloudflare_dns:
     zone: "{{ awx_domain.split('.')[1:] | join('.') }}"
     record: "{{ awx_domain.split('.')[0] }}"

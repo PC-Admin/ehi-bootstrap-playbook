@@ -1,19 +1,19 @@
 ---
 
 - name: Gather facts on the ansible controller
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   ansible.builtin.setup:
   run_once: true
 
 - name: Delete ~/.ssh/known_hosts entry for host
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   ansible.builtin.command: |
     ssh-keygen -f "/home/{{ lookup('env', 'USER') }}/.ssh/known_hosts" -R "{{ server_ipv4 }}"
   when: ansible_system == 'Linux'
   ignore_errors: True
 
 - name: Remove host entry to ~/.hosts file
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   lineinfile:
     path: '~/.hosts'
     create: true
@@ -24,7 +24,7 @@
   when: ansible_system == 'Linux'
 
 - name: Remove HOSTALIASES environment variable to ~/.profile
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   lineinfile:
     path: '~/.profile'
     create: true
