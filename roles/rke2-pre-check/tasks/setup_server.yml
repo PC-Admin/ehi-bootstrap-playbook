@@ -3,7 +3,6 @@
 - name: Set hostname for each RKE2 node to its domain
   hostname:
     name: "{{ rke2_subdomain }}.{{ awx_domain.split('.')[1:] | join('.') }}"
-  tags: [ 'never', 'rke2-setup' ]
 
 - name: Disable all swap on AWX/Rancher server
   ansible.builtin.command: swapoff -a
@@ -65,7 +64,6 @@
     state: directory
     mode: '0755'
   when: rke2_type == 'server'
-  tags: [ 'never', 'rke2-setup' ]
 
 - name: Ensure /etc/rancher/rke2 directory exists on all RKE2 nodes
   file:
@@ -73,4 +71,3 @@
     recurse: yes
     state: directory
     mode: '0755'
-  tags: [ 'never', 'rke2-setup' ]

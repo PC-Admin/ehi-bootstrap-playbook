@@ -2,16 +2,16 @@
 
 # Gather facts from each host and set other variables for the lablabs.rke2 role
 - import_tasks: "{{ role_path }}/tasks/gather_facts.yml"
-  tags: [ 'never', 'setup-rke2' ]
+  tags: setup-rke2
 
 # Setup the RKE2 server nodes for RKE2 deployment
 - import_tasks: "{{ role_path }}/tasks/setup_server.yml"
-  tags: [ 'never', 'setup-rke2' ]
+  tags: setup-rke2
 
 # Configured the HAProxy nodes
 - import_tasks: "{{ role_path }}/tasks/haproxy_configure.yml"
-  tags: [ 'never', 'setup-rke2' ]
+  tags: setup-rke2
 
 # Setup K9s on host, a popular kubernetes inspection tool
 - import_tasks: "{{ role_path }}/tasks/k9s_setup.yml"
-  tags: [ 'never', 'setup-rke2' ]
+  tags: setup-rke2

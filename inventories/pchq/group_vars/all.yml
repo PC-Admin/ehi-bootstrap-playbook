@@ -1,0 +1,49 @@
+# HAProxy Variables
+haproxy_nodes: [ 'haproxy01.penholder.xyz', 'haproxy02.penholder.xyz', 'haproxy03.penholder.xyz' ] 
+
+# RKE2 Variables
+rke2_ha_mode: true
+rke2_load_balancer: haproxy01.penholder.xyz
+rke2_bootstrap_node: rke2-01.penholder.xyz
+rke2_version: v1.24.11+rke2r1			# Rancher doesn't support 1.25 yet..
+rke2_ha_mode_keepalived: false			# Stop stupid IP ganking
+load_balancer_ip_internal: "10.1.3.147"       # This is the internal IP of the load balancer
+load_balancer_ip_external: "159.196.192.211"  # This is the external IP of the load balancer
+
+# Proxmox User/Token Variables
+proxmox_user: "root@pam"
+proxmox_token_id: "Ansible"
+proxmox_method: "clone" # 'clone' or 'lxc'
+number_of_volumes: 2
+volume_size: 25
+
+# Rancher Variables
+rancher_url: rancher.penholder.xyz
+
+# Cert-Manager Variables
+cert_manager_version: "v1.11.0"
+
+# AWX Variables
+awx_domain: awx.penholder.xyz
+awx_admin_username: "ebi-business"
+awx_admin_email: "ebi@estuary.tech"
+awx_org_name: "Estuary Home Infrastructure"
+awx_deploy_source: "https://github.com/application-research/ehi-bootstrap-playbook.git"
+awx_deploy_branch: "main"
+
+# AWX Resources Repository Variables
+awx_resources_source: "git@github.com:application-research/ehi-awx-resources.git"
+awx_resources_branch: "main"
+awx_resources_deploy_key: "~/.ssh/awx-git"
+awx_resources_git_username: "PC-Admin"
+awx_resources_schedule_start: '20210101T000000'
+awx_resources_schedule_frequency: 'WEEKLY'
+awx_resources_schedule_interval: 1
+awx_timezone: 'America/Chicago'
+
+# SSH Variables
+ssh_key_file_private: ~/.ssh/testing2023
+public_ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAcRcwVe1sUuizIFVVf6MXK8wYlY557gX38FKVZRB5jc Testing 2023 SSH Key - Michael Collins"
+
+# LetsEncrypt Variables
+letsencrypt_email: michael@perthserverplus.com

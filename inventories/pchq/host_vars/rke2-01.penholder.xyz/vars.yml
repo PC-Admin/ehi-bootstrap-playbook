@@ -11,17 +11,6 @@ proxmox_host: "10.1.3.204"
 proxmox_node: "gastly"
 proxmox_template: "ubuntu22-template-64g-2"
 proxmox_storage: "Crucial_SSD"
-#proxmox_lxc_cpus: 2
-#proxmox_lxc_memory: 2048
-#proxmox_lxc_swap: 2048
-#proxmox_lxc_user: 'root'
-#proxmox_lxc_password: 'your_secure_password_here'
-#proxmox_lxc_unprivileged: true
-#proxmox_lxc_netif:
-#  - name: eth0
-#    bridge: vmbr0
-#    hwaddr: 02:01:02:03:04:05
-#proxmox_lxc_template: 'local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.zst'
 
 # Extra variables
 vmid: 110

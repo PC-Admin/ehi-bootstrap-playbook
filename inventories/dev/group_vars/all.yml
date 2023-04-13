@@ -1,0 +1,46 @@
+# HAProxy Variables
+haproxy_nodes: [ 'dev-haproxy01.estuary.tech', 'dev-haproxy02.estuary.tech', 'dev-haproxy03.estuary.tech' ] 
+
+# RKE2 Variables
+rke2_ha_mode: true
+rke2_version: v1.24.11+rke2r1			                # Rancher doesn't support 1.25 yet..
+rke2_ha_mode_keepalived: false			               # Stop stupid IP ganking
+
+# Proxmox User/Token Variables
+proxmox_user: "root@pam"
+proxmox_token_id: "ansible-awx"
+proxmox_method: "clone" 			# 'clone' or 'lxc', note that lxc mode is currently broken
+number_of_volumes: 2				  # The number of block storage devices to spawn on Proxmox and connect automatically
+volume_size: 25					      # The size of these block storage devices in GB
+
+# Rancher Variables
+rancher_url: rancher.estuary.tech
+
+# Cert-Manager Variables
+cert_manager_version: "v1.11.0"
+
+# AWX Variables
+awx_domain: awx.estuary.tech			    # The domain for AWX
+awx_admin_username: "admin"
+awx_admin_email: "admin@estuary.tech"
+awx_org_name: "Estuary"
+awx_deploy_source: "https://github.com/application-research/ehi-bootstrap-playbook.git"	# The repository for this playbook itself
+awx_deploy_branch: "main"
+
+# AWX Resources Repository Variables
+awx_resources_source: "git@github.com:application-research/ehi-awx-resources.git"
+awx_resources_branch: "main"
+awx_resources_deploy_key: "../awx-git"
+awx_resources_git_username: "PC-Admin"
+awx_resources_schedule_start: '20210101T000000'
+awx_resources_schedule_frequency: 'WEEKLY'
+awx_resources_schedule_interval: 1
+awx_timezone: 'America/Chicago'
+validate_certs: False
+
+# SSH Variables
+ssh_key_file_private: ~/.ssh/testing2023
+public_ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAcRcwVe1sUuizIFVVf6MXK8wYlY557gX38FKVZRB5jc Testing 2023 SSH Key - Michael Collins"
+
+# LetsEncrypt Variables
+letsencrypt_email: michael@perthserverplus.com

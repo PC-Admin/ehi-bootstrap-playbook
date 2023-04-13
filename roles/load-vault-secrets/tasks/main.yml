@@ -1,0 +1,8 @@
+
+# Sync the vault-secrets repository to the local machines ./vault/ directory
+- import_tasks: "{{ role_path }}/tasks/sync_repo.yml"
+  tags: [ 'setup-rke2', 'rancher-setup', 'awx-setup', 'configure-awx' ]
+
+# Load the synced secrets.yml file
+- import_tasks: "{{ role_path }}/tasks/load_secrets.yml"
+  tags: [ 'setup-rke2', 'rancher-setup', 'awx-setup', 'configure-awx' ]

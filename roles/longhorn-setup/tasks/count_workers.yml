@@ -3,16 +3,13 @@
 - name: Create a dynamic group for worker nodes
   group_by:
     key: "worker_{{ 'yes' if (hostvars[inventory_hostname]['rke2_type'] is defined and hostvars[inventory_hostname]['rke2_type'] == 'agent') else 'no' }}"
-  tags: [ 'never', 'rke2-setup' ]
 
 - name: Create list of worker nodes
   set_fact:
     worker_nodes: "{{ groups['worker_yes'] if 'worker_yes' in groups else [] }}"
   run_once: True
-  tags: [ 'never', 'rke2-setup' ]
 
 - name: Print the number of worker nodes
   debug:
     msg: "Number of worker nodes: {{ worker_nodes | length }}"
   run_once: True
-  tags: [ 'never', 'rke2-setup' ]

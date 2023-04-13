@@ -2,16 +2,16 @@
 
 # Generates ./group_vars/secrets.yml if it doesn't exist and generates a OAuth token for AWX
 - import_tasks: "{{ role_path }}/tasks/awx_token.yml"
-  tags: [ 'never', 'configure-awx' ]
+  tags: 'configure-awx'
 
 # AWX cleanup default configuration
 - import_tasks: "{{ role_path }}/tasks/cleanup_defaults.yml"
-  tags: [ 'never', 'configure-awx' ]
+  tags: 'configure-awx'
 
 # AWX configure organisations, user accounts and inventories
 - import_tasks: "{{ role_path }}/tasks/awx_user_org_inventory.yml"
-  tags: [ 'never', 'configure-awx' ]
+  tags: 'configure-awx'
 
 # AWX configure credentials
 - import_tasks: "{{ role_path }}/tasks/awx_resources.yml"
-  tags: [ 'never', 'configure-awx' ]
+  tags: 'configure-awx'

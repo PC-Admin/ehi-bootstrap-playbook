@@ -1,0 +1,48 @@
+---
+
+# Sync the vault-secrets directory to the local machines ./vault/ directory
+
+#- name: DEBUG print the current playbook directory
+#  ansible.builtin.debug:
+#    msg: "The current playbook directory is: {{ playbook_dir }}"
+#  run_once: true
+
+#- name: DEBUG print the current inventory directory
+#  ansible.builtin.debug:
+#    msg: "The current inventory file is: {{ inventory_dir }}"
+#  run_once: true
+
+#- name: DEBUG print the inventory directory without the playbook directory
+#  ansible.builtin.debug:
+#    msg: "The inventory directory without the playbook directory is: {{ inventory_dir | replace(playbook_dir, '') }}"
+#  run_once: true
+
+#- name: DEBUG print the last directory of the current inventory directory
+#  ansible.builtin.debug:
+#    msg: "The last directory in the current inventory file is: {{ inventory_dir | basename }}"
+#  run_once: true
+
+- name: Ensure ./vault/secrets/ exists
+  delegate_to: localhost
+  ansible.builtin.file:
+    path: '{{ playbook_dir }}/vault/secrets/'
+    state: directory
+    mode: 0755
+  run_once: true
+
+- name: Sync vault-secrets repository to local machine
+  delegate_to: localhost
+  ansible.builtin.git:
+    repo: '{{ vault_repo_source }}'
+    dest: '{{ playbook_dir }}/vault/secrets/'
+    version: '{{ vault_repo_branch }}'
+    force: yes
+    update: yes
+  run_once: true
+
+- name: "Check if {{ playbook_dir }}/vault/secrets/ehi-bootstrap-playbook/{{ inventory_dir | basename }}/secrets.yml exists"
+  delegate_to: localhost
+  ansible.builtin.stat:
+    path: "{{ playbook_dir }}/vault/secrets/ehi-bootstrap-playbook/{{ inventory_dir | basename }}/secrets.yml"
+  register: secrets_file
+  run_once: true

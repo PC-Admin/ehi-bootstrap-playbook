@@ -1,0 +1,5 @@
+
+# EHI Vault Secrets Repository - A private repository to store vaulted secrets in.
+
+vault_repo_source: git@github.com:application-research/ehi-vault-secrets.git
+vault_repo_branch: main

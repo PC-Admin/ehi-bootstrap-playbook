@@ -5,7 +5,46 @@
   gather_facts: no
   #become: true     # breaks local execution like in configure-awx role... 
 
+  pre_tasks:
+    - name: Check if vault password file exists
+      delegate_to: localhost
+      ansible.builtin.stat:
+        path: "{{ playbook_dir }}/vault/password-file"
+      run_once: true
+      register: vault_password_file
+
+    - name: Prompt for vault password if the password file doesn't exist
+      delegate_to: localhost
+      ansible.builtin.pause:
+        prompt: "Enter the vault password:"
+      run_once: true
+      when: not vault_password_file.stat.exists
+      register: vault_password_prompt
+
+    - name: Exit playbook if the vault password prompt is empty
+      ansible.builtin.fail:
+        msg: "Interactive Vault password prompt was empty. Exiting..."
+      run_once: true
+      when: ( not vault_password_file.stat.exists ) and ( vault_password_prompt.user_input | length == 0 )
+
+    - name: Create the password-file if it didn't already exists
+      delegate_to: localhost
+      ansible.builtin.copy:
+        content: "{{ vault_password_prompt.user_input }}"
+        dest: "{{ playbook_dir }}/vault/password-file"
+        mode: 0600
+      when: ( not vault_password_file.stat.exists ) and ( vault_password_prompt.user_input | length > 0 )
+      run_once: true
+      no_log: true
+
+    - name: Exit the playbook prompting the user to use the vault password file on the next run_once
+      ansible.builtin.fail:
+        msg: "Please run the playbook again with the vault password file, for example:\n\n$ ansible-playbook -i inventories/dev/ setup.yml --vault-password-file vault/password-file\n\nExiting..."
+      run_once: true
+      when: ( not vault_password_file.stat.exists ) and ( vault_password_prompt.user_input | length > 0 )
+
   roles:
+    - load-vault-secrets
     - provision
     - rke2-pre-check
     - role: lablabs.rke2

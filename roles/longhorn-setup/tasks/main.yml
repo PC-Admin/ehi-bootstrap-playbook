@@ -2,8 +2,8 @@
 
 # Count the number of worker nodes
 - import_tasks: "{{ role_path }}/tasks/count_workers.yml"
-  tags: [ 'never', 'rancher-setup' ]
+  tags: [ 'rancher-setup', 'awx-setup' ]
 
 # Setup Longhorn
 - import_tasks: "{{ role_path }}/tasks/longhorn_setup.yml"
-  tags: [ 'never', 'rancher-setup' ]
+  tags: [ 'rancher-setup', 'awx-setup' ]

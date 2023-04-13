@@ -49,5 +49,10 @@ Record each hosts variables into each hosts ./inventories/dev/host_vars/awx1.exa
 
 4) Run the playbook with the following tags:
 
-`$ ansible-playbook -v -i ./inventory/hosts -t "rke2-setup,rancher-setup,awx-setup,configure-awx" setup.yml`
+`$ ansible-playbook -v -i ./inventories/pchq/ setup.yml`
 
+This playbook has the following tags available (-t):
+- setup-rke2        Runs only the RKE2 setup section.
+- rancher-setup     Runs only the Rancher setup section.
+- awx-setup         Runs only the AWX setup section.
+- configure-awx     Runs only the AWX configuration section.

@@ -5,7 +5,6 @@
 - name: Print the RKE2 version
   debug:
     msg: "RKE2 version: {{ rke2_version }}"
-  tags: [ 'never', 'rke2-setup' ]
 
 # Print the RKE2 server version
 
@@ -13,7 +12,6 @@
   debug:
     msg: "RKE2 server version: {{ rke2_server_version }}"
   ignore_errors: True
-  tags: [ 'never', 'rke2-setup' ]
 
 # Print the RKE2 agent version
 
@@ -21,7 +19,6 @@
   debug:
     msg: "RKE2 agent version: {{ rke2_agent_version }}"
   ignore_errors: True
-  tags: [ 'never', 'rke2-setup' ]
 
 # Print the RKE2 server image
 
@@ -29,7 +26,6 @@
   debug:
     msg: "RKE2 server image: {{ rke2_server_image }}"
   ignore_errors: True
-  tags: [ 'never', 'rke2-setup' ]
 
 # Print the RKE2 agent image
 
@@ -37,7 +33,6 @@
   debug:
     msg: "RKE2 agent image: {{ rke2_agent_image }}"
   ignore_errors: True
-  tags: [ 'never', 'rke2-setup' ]
 
 # Print load_balancer_ip_internal variable
 
@@ -45,7 +40,6 @@
   debug:
     msg: "load_balancer_ip_internal: {{ load_balancer_ip_internal }}"
   ignore_errors: True
-  tags: [ 'never', 'rke2-setup' ]
 
 # Print rke2_token variable
 
@@ -56,7 +50,6 @@
     line: 'export PATH=$PATH:/var/lib/rancher/rke2/bin'
     insertbefore: "# If not running interactively, don't do anything"
   when: rke2_type == 'server'
-  tags: [ 'never', 'rke2-setup' ]
 
 # Strangely the rke2 role we're using leaves the permissions on rke2.yaml wide open..
 
@@ -64,7 +57,6 @@
   ansible.builtin.file:
     path: /etc/rancher/rke2/rke2.yaml
     mode: 0600
-  tags: [ 'never', 'rke2-setup' ]
   ignore_errors: True
 
 # copy the kubeconfig to the root user's home directory
@@ -76,7 +68,6 @@
     state: directory
     mode: 0700
   when: rke2_type == 'server'
-  tags: [ 'never', 'rke2-setup' ]
 
 - name: On RKE2 server nodes, copy the kubeconfig to root user's home directory
   ansible.builtin.copy:
@@ -85,7 +76,6 @@
     mode: 0600
     remote_src: true
   when: rke2_type == 'server'
-  tags: [ 'never', 'rke2-setup' ]
 
 # Worker nodes aren't being labelled strangely...
 
@@ -95,7 +85,6 @@
     cmd: kubectl label node {{ rke2_subdomain }}.{{ awx_domain.split('.')[1:] | join('.') }} node-role.kubernetes.io/worker=worker --overwrite
     executable: /bin/bash
   when: rke2_type == 'agent'
-  tags: [ 'never', 'rke2-setup' ]
 
 # ^ Why aren't these being labelled by the role?
 
@@ -105,10 +94,8 @@
     kubectl get nodes
   register: cluster_status
   run_once: True
-  tags: [ 'never', 'rke2-setup' ]
 
 - name: Display cluster status output
   ansible.builtin.debug:
     msg: "{{ cluster_status.stdout_lines }}"
   run_once: True
-  tags: [ 'never', 'rke2-setup' ]
