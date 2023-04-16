@@ -44,7 +44,10 @@
     helm install cert-manager jetstack/cert-manager \
     --namespace cert-manager \
     --version {{ cert_manager_version }} \
-    --create-namespace 
+    --create-namespace
+    --set 'extraArgs={--dns01-recursive-nameservers-only,--dns01-recursive-nameservers=8.8.8.8:53\,1.1.1.1:53}'
+#   Attempt to fix #9 ^ https://cert-manager.io/docs/configuration/acme/dns01/#setting-nameservers-for-dns01-self-check
+#
 #    --set installCRDs=true was this important? :P
   run_once: True
   when: "'cert-manager' not in cert_manager_helm_check.stdout"
