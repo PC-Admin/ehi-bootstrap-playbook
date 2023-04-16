@@ -6,7 +6,7 @@ How to install this clustered AWX setup.
 
 ## Provision the Servers
 
-Use MAAS and [ehi-cloudy-dreams](https://github.com/application-research/ehi-cloudy-dreams) to provision at least 3 control-plane servers and 0 to N worker nodes if you prefer to have seperate worker nodes.
+Use MAAS and [ehi-proxmaas](https://github.com/application-research/ehi-proxmaas) to provision at least 3 control-plane servers and 0 to N worker nodes if you prefer to have seperate worker nodes.
 
 
 ## Setup DNS Entries for it
@@ -37,19 +37,19 @@ $ ansible-galaxy collection install community.digitalocean
 ```
 
 
-2) Edit hosts into [./inventories/dev/hosts](./inventories/dev/hosts) or whatever specific inventory you want to use.
+2) Edit hosts into a new inventory of your choosing, see the current [./inventories/development-ehi/hosts](./inventories/development-ehi/hosts) inventory as an example.
 
-Create folder for each host at: ./inventories/dev/host_vars/
+Create folder for each host at: ./inventories/your-inventory/host_vars/
 
-Record each hosts variables into each hosts ./inventories/dev/host_vars/awx1.example.org/vars.yml file.
+Record each hosts variables into each hosts ./inventories/your-inventory/host_vars/{{ inventory_hostname }}/vars.yml file.
 
 
-3) Create a global variables file in ./group_vars/all.yml, you can see an example for this in  [./group_vars/all_example.yml](./group_vars/all_example.yml)
+3) Create a global variables file for your new inventory in ./inventories/your-inventory/group_vars/all.yml, you can see an example for this in  [./inventories/development-ehi/group_vars/all.yml](./inventories/development-ehi/group_vars/all.yml)
 
 
 4) Run the playbook with the following tags:
 
-`$ ansible-playbook -v -i ./inventories/pchq/ setup.yml`
+`$ ansible-playbook -v -i ./inventories/your-inventory/ setup.yml`
 
 This playbook has the following tags available (-t):
 - setup-rke2        Runs only the RKE2 setup section.
