@@ -30,10 +30,10 @@ Note: The other server nodes besides the bootstrap node are commented out, this 
 
 1) Install the following ansible-galaxy packages on the controller:
 ```
-$ ansible-galaxy collection install --force awx.awx:21.14.0
-$ ansible-galaxy install lablabs.rke2
-$ ansible-galaxy collection install community.grafana
-$ ansible-galaxy collection install community.digitalocean
+ansible-galaxy collection install --force awx.awx:21.14.0
+ansible-galaxy install lablabs.rke2
+ansible-galaxy collection install community.grafana
+ansible-galaxy collection install community.digitalocean
 ```
 
 
@@ -49,7 +49,7 @@ Record each hosts variables into each hosts ./inventories/your-inventory/host_va
 
 4) Run the playbook with the following tags:
 
-`$ ansible-playbook -v -i ./inventories/your-inventory/ setup.yml`
+`ansible-playbook -v -i ./inventories/your-inventory/ setup.yml`
 
 This playbook has the following tags available (-t):
 - setup-rke2        Runs only the RKE2 setup section.
